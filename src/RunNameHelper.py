@@ -1,18 +1,18 @@
 from RunHelper import Method
 
 def getAeType(autoEncoderType):
-    if autoEncoderType == 1: return "AE-300-256-300"
-    if autoEncoderType == 2: return "AE-300-128-300"
-    elif autoEncoderType == 3: return "AE-300-64-300"
-    elif autoEncoderType == 4: return "AE-300-32-300"
-    elif autoEncoderType == 5: return "AE-300-16-300"
-    elif autoEncoderType == 6: return "AE-300-128-64-128-300"
-    elif autoEncoderType == 7: return "AE-300-256-128-256-300"
-    elif autoEncoderType == 8: return "AE-300-128-64-32-64-128-300"
-    elif autoEncoderType == 9: return "AE-300-256-128-64-128-256-300"
-    elif autoEncoderType == 10: return "AE-300-128-64-32-16-32-64-128-300"
-    elif autoEncoderType == 11: return "AE-300-256-128-64-32-64-128-256-300"
-    elif autoEncoderType == 12: return "AE-300-256-128-64-32-16-32-64-128-256-300"
+    if autoEncoderType == 1: return "AE-X-256-X"
+    if autoEncoderType == 2: return "AE-X-128-X"
+    elif autoEncoderType == 3: return "AE-X-64-X"
+    elif autoEncoderType == 4: return "AE-X-32-X"
+    elif autoEncoderType == 5: return "AE-X-16-X"
+    elif autoEncoderType == 6: return "AE-X-128-64-128-X"
+    elif autoEncoderType == 7: return "AE-X-256-128-256-X"
+    elif autoEncoderType == 8: return "AE-X-128-64-32-64-128-X"
+    elif autoEncoderType == 9: return "AE-X-256-128-64-128-256-X"
+    elif autoEncoderType == 10: return "AE-X-128-64-32-16-32-64-128-X"
+    elif autoEncoderType == 11: return "AE-X-256-128-64-32-64-128-256-X"
+    elif autoEncoderType == 12: return "AE-X-256-128-64-32-16-32-64-128-256-X"
 
 def GetRunName(method, autoEncoderType=0, somGridSize=0, numOfSplits=1, normalise=False, numOfPcaComp=0):
     runName = ""

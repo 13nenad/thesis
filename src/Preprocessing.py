@@ -11,10 +11,20 @@ class Preprocessing:
     def LoadIcbebDataFromMatlabFiles(directory):
         dataSignals = []
         for filename in os.listdir(directory):
-            dataDict = loadmat(directory + '/' + filename)
-            ecgNdArray = dataDict['ECG']['data']
-            newRow = ecgNdArray[0][0][0]  #[0:1000]
+            dataDict = loadmat(directory + "/" + filename)
+            ecgNdArray = dataDict["ECG"]["data"]
+            newRow = ecgNdArray[0][0][0]
             dataSignals.append(newRow)
+
+        return dataSignals
+
+    @staticmethod
+    def LoadPhysioNetDataFromMatlabFiles(directory):
+        dataSignals = []
+        for filename in os.listdir(directory):
+            if ".mat" in filename:
+                dataDict = loadmat(directory + "/" + filename)
+                dataSignals.append(dataDict["val"][0])
 
         return dataSignals
 
@@ -59,18 +69,18 @@ class Preprocessing:
 
         return dataSignals
 
-    # Return numpy array of numpy arrays i.e. array of ECG samples - should be of length 300
+    # Return numpy array of numpy arrays i.e. array of ECG samples
     @staticmethod
-    def LoadAllSamplesFromCsv(filePath, splitOutClasses):
+    def LoadAllSamplesFromCsv(filePath, splitOutClasses, sampleLength):
         dataSamples = []
         allSamplesFile = open(filePath, 'r')
         sampleLines = allSamplesFile.readlines()
 
-        for signal in sampleLines:
-            sampleData = np.fromstring(signal, sep=",")
+        for sample in sampleLines:
+            sampleData = np.fromstring(sample, sep=",")
             if len(sampleData) > 2:
-                if len(sampleData) != 301:
-                   raise ValueError("Length of sample is not 301!")
+                if len(sampleData) != sampleLength:
+                   raise ValueError("Length of sample is not " + sampleLength)
                 dataSamples.append(sampleData)
 
         dataSamples = np.array(dataSamples)
@@ -83,13 +93,14 @@ class Preprocessing:
             return dataSamples
 
     @staticmethod
-    def GetRawSamplesFromSignals(dataSignals):
+    def GetRawSamplesFromSignals(dataSignals, sampleRate):
         allRawSamples = []
         for signal in dataSignals:
             label = signal[0]    # Get the label value
             signal = signal[1:]  # Getting rid of the label value
-            rPeaks = ecg.christov_segmenter(signal=signal, sampling_rate=500.)
-            extractions = ecg.extract_heartbeats(signal=signal, rpeaks=rPeaks[0], sampling_rate=500., before=0.2, after=0.4)
+            rPeaks = ecg.christov_segmenter(signal=signal, sampling_rate=sampleRate)
+            extractions = ecg.extract_heartbeats(signal=signal, rpeaks=rPeaks[0], sampling_rate=sampleRate,
+                                                 before=0.2, after=0.4)
             heartbeats = extractions['templates']
 
             for heartbeat in heartbeats:
@@ -114,10 +125,27 @@ class Preprocessing:
         return allFilteredSamples
 
     @staticmethod
-    def AddLabelsToSignals(signalData, filePath):
-        labelData = genfromtxt(filePath, delimiter=',', skip_header=1, usecols=(1,))
-        for i in range(len(labelData)):
-            signalData[i] = np.insert(signalData[i], 0, labelData[i])
+    def AddLabelsToSignals(signalData, labelFilePath, dataset):
+        if dataset == 0: # ICBEB dataset
+            labelData = genfromtxt(labelFilePath, delimiter=',', skip_header=1, usecols=(1,))
+
+            for i in range(len(labelData)):
+                signalData[i] = np.insert(signalData[i], 0, labelData[i])
+
+        elif dataset == 1: # PhysioNet dataset
+            labelData = genfromtxt(labelFilePath, delimiter=',', skip_header=0, usecols=(1,), dtype="U")
+            filteredData = []
+
+            # Convert labels to number and remove classifications which are not N, A or O
+            for i in range(len(labelData)):
+                if labelData[i] == "N":
+                    filteredData.append(np.insert(signalData[i], 0, 0))
+                elif labelData[i] == "A":
+                    filteredData.append(np.insert(signalData[i], 0, 1))
+                elif labelData[i] == "O":
+                    filteredData.append(np.insert(signalData[i], 0, 2))
+
+            signalData = filteredData
 
         return signalData
 
@@ -133,8 +161,8 @@ class Preprocessing:
 
     # Split samples into a 80% training/validation set and a 20% testing set
     @staticmethod
-    def SplitSamplesAndSave(samplesDir, originalFileName, trainingFileName, testingFileName):
-        samples = Preprocessing.LoadAllSamplesFromCsv(samplesDir + originalFileName, False)
+    def SplitSamplesAndSave(samplesDir, originalFileName, trainingFileName, testingFileName, sampleLength):
+        samples = Preprocessing.LoadAllSamplesFromCsv(samplesDir + originalFileName, False, sampleLength)
         np.random.shuffle(samples)  # shuffle all of the samples
         # Split samples into a 80%/20% split
         twoWaySplit = np.split(samples, [int(0.8 * len(samples))])
@@ -169,11 +197,26 @@ class Preprocessing:
 
         return splitByIndexTrainX
 
-#a = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]])
-#somSplit = 3
+    @staticmethod
+    def AddRandomNoiseToSample(dataX):
+        for i in range(len(dataX)):
+            dataX[i] += np.random.normal(0, 1, dataX.shape[1]) # add random noise
+        return dataX
+
 #Preprocessing.ReduceSamples("C:/Dev/DataSets/ICBEB/RawSamples/", "TrainingAndValSet.csv", "SmallTrainingSet.csv", 50000)
 #Preprocessing.ReduceSamples("C:/Dev/DataSets/ICBEB/RawSamples/", "TestingSet.csv", "SmallTestingSet.csv", 10000)
 
-# N = len(dataSignals)  # number of samples
-# T = N / 500  # duration
-# ts = np.linspace(0, T, N, endpoint=False)  # relative timestamps
+#signals = Preprocessing.LoadPhysioNetDataFromMatlabFiles("C:/Dev/DataSets/PhysioNet/MatlabData")
+#Preprocessing.SaveAllSignalsToCsv(signals, "C:/Dev/DataSets/PhysioNet")
+
+#allSignals = Preprocessing.LoadAllSignalsFromCsv("C:/Dev/DataSets/PhysioNet/AllSignals.csv")
+#allSignals = Preprocessing.AddLabelsToSignals(allSignals, "C:/Dev/DataSets/PhysioNet/Labels.csv", 1)
+#Preprocessing.SaveAllSignalsToCsv(allSignals, "C:/Dev/DataSets/PhysioNet")
+
+#signal = Preprocessing.AddRandomNoiseToSample(allSignals[0])
+#out = ecg.ecg(signal=signal, sampling_rate=300, show=True)
+
+#rawSamples = Preprocessing.GetRawSamplesFromSignals(allSignals, 300)
+#Preprocessing.SaveAllSamplesToCsv(rawSamples, "C:/Dev/DataSets/PhysioNet/Raw/AllSamples.csv")
+#Preprocessing.SplitSamplesAndSave("C:/Dev/DataSets/PhysioNet/Raw/", "AllSamples.csv", "TrainingSet.csv", "TestingSet.csv", 181)
+

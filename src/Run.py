@@ -5,13 +5,12 @@ from KNNClassifier import KNNClassifier
 from MyPCA import MyPCA
 from Preprocessing import Preprocessing
 from MySom import MySom, translateToCoords
-from tensorflow_core.python.keras.models import load_model
 
 from RunHelper import SampleType, Method, GetNumOfSplits, GetMethodIndex, GetProjType, GetAeType, GetGridSize, \
     GetNumOfPrinComp
 
-baseDir = "C:/Dev/DataSets/ICBEB/"
-loadSavedModel, normalise, isCoordBased = False, False, True
+baseDir = "C:/Dev/DataSets/PhysioNet/"
+normalise, isCoordBased = False, True
 
 print("1. Use raw samples\n2. Use filtered samples\n3. Use normalised samples")
 rawSamplesVal = input()
@@ -52,8 +51,9 @@ if method == Method.EncoderPlusSom:
     if coordBasedVal == "2": isCoordBased = False
 
 # Initialise training, validation and testing data
-trainX, trainY = Preprocessing.LoadAllSamplesFromCsv(baseDir + sampleType.name + "/TrainingSet.csv", True)
-testX, testY = Preprocessing.LoadAllSamplesFromCsv(baseDir + sampleType.name + "/TestingSet.csv", True)
+trainX, trainY = Preprocessing.LoadAllSamplesFromCsv(baseDir + sampleType.name + "/TrainingSet.csv", True, 181)
+
+testX, testY = Preprocessing.LoadAllSamplesFromCsv(baseDir + sampleType.name + "/TestingSet.csv", True, 181)
 logFileDir = baseDir + sampleType.name + "/KNN Results/"
 aeModelDir = baseDir + sampleType.name + "/Models/"
 
@@ -74,18 +74,11 @@ def runKNN(trainX, testX, trainY, testY, logFilePath):
     knn.test(testX, testY)
 
 def runAutoEncoder(autoEncoderType, runName, logFilePath, trainX, testX):
-    if loadSavedModel:
-        savedModel = load_model(aeModelDir + runName + ".h5")
-        savedModel.summary()
-        encodedTrainX = savedModel.predict(trainX)  # This is what we pass to our SOM or KNN to train
-        encodedTestX = savedModel.predict(testX)  # This is what we pass to out SOM or KNN to test
-    else:
-        # Initialise, train and test AutoEncoder
-        autoEncoder = AutoEncoder(trainX.shape[1], autoEncoderType, logFilePath)
-        autoEncoder.train(trainX, 256, 100)
-        encodedTrainX = autoEncoder.encode(trainX, True)  # This is what we pass to our SOM or KNN to train
-        encodedTestX = autoEncoder.encode(testX, False)  # This is what we pass to out SOM or KNN to test
-        autoEncoder.encoderModel.save(aeModelDir + runName + ".h5") # Save auto encoder model so we can use it
+    # Initialise, train and test AutoEncoder
+    autoEncoder = AutoEncoder(trainX.shape[1], autoEncoderType, logFilePath)
+    autoEncoder.train(trainX, 256, 100)
+    encodedTrainX = autoEncoder.encode(trainX, True)  # This is what we pass to our SOM or KNN to train
+    encodedTestX = autoEncoder.encode(testX, False)  # This is what we pass to out SOM or KNN to test
 
     return encodedTrainX, encodedTestX
 
@@ -131,10 +124,13 @@ if method == Method.EncoderPlusSom:
     runKNN(encodedTrainX, encodedTestX, trainY, testY, logFilePath)
 
 elif method == Method.SingleEncoder:
-    for aeType in range(1, 12):
+    for aeType in range(2, 5):
         runName = RunNameHelper.GetRunName(method, autoEncoderType=aeType)
         logFilePath = logFileDir + runName + ".txt"
-        runAutoEncoder(autoEncoderType=aeType, runName=runName, logFilePath=logFilePath, trainX=trainX, testX=testX)
+        newTrainX, newTestX = runAutoEncoder(autoEncoderType=aeType, runName=runName, logFilePath=logFilePath,
+                                             trainX=trainX, testX=testX)
+
+        runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
 elif method == Method.MultipleEncoders:
     splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfSplits)

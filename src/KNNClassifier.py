@@ -1,5 +1,6 @@
 import time
 import numpy as np
+from sklearn.metrics import multilabel_confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
 
@@ -28,6 +29,20 @@ class KNNClassifier(object):
     def test(self, testX, testY):
         with open(self.logFilePath, "a") as resultsWriter:
             tic = time.perf_counter()
+            predY = self.knnGscv.predict(testX)
+
+            mcm = multilabel_confusion_matrix(testY, predY)
+            tn = mcm[:, 0, 0]
+            tp = mcm[:, 1, 1]
+            fn = mcm[:, 1, 0]
+            fp = mcm[:, 0, 1]
+            precList = tp / (tp + fp)
+            recallList = tp / (tp + fn)
+            specList = tn / (tn + fp)
+
             resultsWriter.write(f"KNN testing accuracy: {self.knnGscv.score(testX, testY):0.4f} \r")
+            resultsWriter.write(f"KNN testing precision: {sum(precList) / len(precList):0.4f} \r")
+            resultsWriter.write(f"KNN testing recall: {sum(recallList) / len(recallList):0.4f} \r")
+            resultsWriter.write(f"KNN testing specificity: {sum(specList) / len(specList):0.4f} \r")
             toc = time.perf_counter()
             resultsWriter.write(f"KNN testing time: {toc - tic:0.4f} seconds \r")
