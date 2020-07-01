@@ -4,12 +4,12 @@ from tensorflow.keras.models import Model
 from tensorflow_core.python.keras import losses, Sequential
 
 class AutoEncoder(object):
-    # archType - 1 => 300|256|300   - archType - 2 => 300|128|300
-    # archType - 3 => 300|64|300    - archType - 4 => 300|32|300
-    # archType - 5 => 300|16|300    - archType - 6 => 300|128|64|128|300
-    # archType - 7 => 300|256|128|128|256|300           - archType - 8 => 300|128|64|32|64|128|300
-    # archType - 9 => 300||256|128|64|128|256|300       - archType - 10 => 300|128|64|32|16|32|64|128|300
-    # archType - 11 => 300|256|128|64|32|64|128|256|300 - archType - 12 => 300|256|128|64|32|16|32|64|128|256|300
+    # archType - 1 => 300|256|300 : archType - 2 => 300|128|300
+    # archType - 3 => 300|64|300  : archType - 4 => 300|32|300
+    # archType - 5 => 300|16|300  : archType - 6 => 300|128|64|128|300
+    # archType - 7 => 300|256|128|128|256|300           : archType - 8 => 300|128|64|32|64|128|300
+    # archType - 9 => 300||256|128|64|128|256|300       : archType - 10 => 300|128|64|32|16|32|64|128|300
+    # archType - 11 => 300|256|128|64|32|64|128|256|300 : archType - 12 => 300|256|128|64|32|16|32|64|128|256|300
     def __init__(self, inputDim, archType, logFilePath):
         self.logFilePath = logFilePath
         # Create auto encoder+decoder

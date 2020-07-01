@@ -4,6 +4,7 @@ from scipy.io import loadmat
 from matplotlib import pyplot as plt
 import os
 from numpy import genfromtxt
+import more_itertools
 
 class Preprocessing:
 
@@ -71,7 +72,7 @@ class Preprocessing:
 
     # Return numpy array of numpy arrays i.e. array of ECG samples
     @staticmethod
-    def LoadAllSamplesFromCsv(filePath, splitOutClasses, sampleLength):
+    def LoadAllSamplesFromCsv(filePath, splitOutClasses):
         dataSamples = []
         allSamplesFile = open(filePath, 'r')
         sampleLines = allSamplesFile.readlines()
@@ -79,8 +80,6 @@ class Preprocessing:
         for sample in sampleLines:
             sampleData = np.fromstring(sample, sep=",")
             if len(sampleData) > 2:
-                if len(sampleData) != sampleLength:
-                   raise ValueError("Length of sample is not " + sampleLength)
                 dataSamples.append(sampleData)
 
         dataSamples = np.array(dataSamples)
@@ -150,12 +149,15 @@ class Preprocessing:
         return signalData
 
     @staticmethod
-    def PlotFirstSampleOfNthSignal(allSamples, n):
-        nthSignal = allSamples[n]
-        firstHeartbeat = nthSignal[0]
-        heartbeatDuration = firstHeartbeat.size / 500.
-        ts = np.linspace(0, heartbeatDuration, firstHeartbeat.size)
-        plt.plot(ts, firstHeartbeat)
+    def PlotHeartbeats(allSamples, start, end, frequency):
+        heartBeats = allSamples[start:end]
+        heartBeatLength = heartBeats[0].size
+        heartbeatDuration = heartBeatLength / frequency
+        ts = np.linspace(0, heartbeatDuration, heartBeatLength)
+
+        for i in range(end-start):
+            plt.plot(ts, heartBeats[i])
+
         plt.grid()
         plt.show()
 
@@ -187,10 +189,13 @@ class Preprocessing:
         return trainX, testX
 
     @staticmethod
-    def SplitDataByIndex(dataX, numOfSplits):
+    def SplitDataByIndex(dataX, numOfSplits, slideDivisor):
         # Example: (1000, 300) => (1000*somSplit, 300/somSplit) => (2000, 150)
-        splitTrainX = np.reshape(dataX, (dataX.shape[0] * numOfSplits, int(dataX.shape[1] / numOfSplits)))
+        #splitTrainX = np.reshape(dataX, (dataX.shape[0] * numOfSplits, int(dataX.shape[1] / numOfSplits)))
+        windowSize = int(dataX.shape[1] / numOfSplits)
+        splitTrainX = Preprocessing.SlidingWindowSplitter(dataX, windowSize, windowSize / slideDivisor)
 
+        numOfSplits = numOfSplits*slideDivisor-(slideDivisor-1)
         splitByIndexTrainX = []
         for i in range(numOfSplits): # Gather all data of the same index together
             splitByIndexTrainX.append(splitTrainX[i::numOfSplits])
@@ -198,23 +203,43 @@ class Preprocessing:
         return splitByIndexTrainX
 
     @staticmethod
-    def AddRandomNoiseToSample(dataX):
-        for i in range(len(dataX)):
-            dataX[i] += np.random.normal(0, 1, dataX.shape[1]) # add random noise
-        return dataX
+    def SlidingWindowSplitter(dataX, windowSize, slide):
+        windowedData = []
+        for sample in dataX:
+            dataSplit = list(more_itertools.windowed(sample, n=windowSize, step=slide))
+            windowedData += dataSplit
 
+        return np.array(windowedData)
+
+    @staticmethod
+    def RemoveOutliers(dataX, dataY):
+        filteredDataX = []
+        filteredDataY = []
+        for i in range(len(dataX)):
+            maxVal = np.max(dataX[i])
+            if maxVal < 2:
+                filteredDataX.append(dataX[i])
+                filteredDataY.append(dataY[i])
+
+        return np.array(filteredDataX), np.array(filteredDataY)
+
+#dataX = [[1,2,3,4,5,6,7,8,9,10,11,12], [13,14,15,16,17,18,19,20,21,22,23,24]]
+#a = Preprocessing.SlidingWindowSplitter(dataX, 4, 3)
+#b = 5
 #Preprocessing.ReduceSamples("C:/Dev/DataSets/ICBEB/RawSamples/", "TrainingAndValSet.csv", "SmallTrainingSet.csv", 50000)
 #Preprocessing.ReduceSamples("C:/Dev/DataSets/ICBEB/RawSamples/", "TestingSet.csv", "SmallTestingSet.csv", 10000)
 
 #signals = Preprocessing.LoadPhysioNetDataFromMatlabFiles("C:/Dev/DataSets/PhysioNet/MatlabData")
 #Preprocessing.SaveAllSignalsToCsv(signals, "C:/Dev/DataSets/PhysioNet")
 
-#allSignals = Preprocessing.LoadAllSignalsFromCsv("C:/Dev/DataSets/PhysioNet/AllSignals.csv")
+#allSignals = Preprocessing.LoadAllSignalsFromCsv("C:/Dev/DataSets/ICBEB/AllSignalsShort.csv")
 #allSignals = Preprocessing.AddLabelsToSignals(allSignals, "C:/Dev/DataSets/PhysioNet/Labels.csv", 1)
 #Preprocessing.SaveAllSignalsToCsv(allSignals, "C:/Dev/DataSets/PhysioNet")
 
-#signal = Preprocessing.AddRandomNoiseToSample(allSignals[0])
-#out = ecg.ecg(signal=signal, sampling_rate=300, show=True)
+#dataX, dataY = Preprocessing.LoadAllSamplesFromCsv("C:/Dev/DataSets/ICBEB/Raw/AllSamples.csv", True, 301)
+#Preprocessing.PlotHeartbeats(dataX, 37, 38, 500)
+#Preprocessing.RemoveOutliers(dataX)
+#out = ecg.ecg(signal=allSignals[0], sampling_rate=500, show=True)
 
 #rawSamples = Preprocessing.GetRawSamplesFromSignals(allSignals, 300)
 #Preprocessing.SaveAllSamplesToCsv(rawSamples, "C:/Dev/DataSets/PhysioNet/Raw/AllSamples.csv")
