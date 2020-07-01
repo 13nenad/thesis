@@ -34,6 +34,8 @@ elif runVal == "3":
 elif runVal == "4":
     method = Method.MultipleEncoders
     numOfAeSplits = GetNumOfAeSplits()
+    aeTypeStart = GetStartingAeType()
+    aeTypeEnd = GetEndingAeType()
 elif runVal == "5":
     method = Method.MultipleSoms
     numOfSomSplits = GetNumOfSomSplits()
@@ -151,7 +153,7 @@ elif method == Method.MultipleEncoders:
     splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfAeSplits, slideDivisor=slideDivisor)
     numOfSplits = numOfAeSplits * slideDivisor - (slideDivisor - 1)
 
-    for aeType in range(3, 4):
+    for aeType in range(aeTypeStart, aeTypeEnd):
         runName = RunNameHelper.GetRunName(method, autoEncoderType=aeType, numOfSomSplits=numOfSplits,
                                            numOfInputDim=trainX.shape[1]/numOfSplits)
         logFilePath = logFileDir + runName + ".txt"
