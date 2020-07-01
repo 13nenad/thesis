@@ -11,7 +11,7 @@ The program currently has 9 different methods that it can run:
     aeTypeStart - The starting architecture type (1-12)
     aeTypeEnd - The ending architecture type (1-12)
 
-2. A single SOM. It loops over a specified number of different grid sizes. You will need to specify:
+2. A single SOM. It loops over a specified number of different grid sizes, step size = 5. You will need to specify:
     numOfSplits
     slideDivisor
     coordBasedVal
@@ -27,9 +27,11 @@ The program currently has 9 different methods that it can run:
 4. Multiple auto-encoders. You will need to specify:
     numOfAeSplits
 
-5. Multiple SOMs. You will need to specify:
+5. Multiple SOMs. It loops over a specified number of different grid sizes, step size = 5. You will need to specify:
     numOfSomSplits
     slideDivisor
+    gridSizeStart
+    gridSizeEnd
 
 6. PCA. Loops over a specified number of principal components. You will need to specify:
     pcaStart

@@ -38,6 +38,8 @@ elif runVal == "5":
     method = Method.MultipleSoms
     numOfSomSplits = GetNumOfSomSplits()
     slideDivisor = GetSlideDivisor()
+    gridSizeStart = GetStartingGridSize()
+    gridSizeEnd = GetEndingGridSize()
 elif runVal == "6":
     method = Method.PCA
     pcaStart = GetStartingPca()
@@ -187,7 +189,7 @@ elif method == Method.MultipleSoms:
     splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfSomSplits, slideDivisor)
     numOfSplits = numOfSomSplits*slideDivisor-(slideDivisor-1)
 
-    for gridSize in range(10, 11, 5):
+    for gridSize in range(gridSizeStart, gridSizeEnd, 5):
         runName = RunNameHelper.GetRunName(method=method, somGridSize=gridSize, numOfSomSplits=numOfSplits)
         logFilePath = logFileDir + runName + ".txt"
 
