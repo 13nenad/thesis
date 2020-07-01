@@ -88,7 +88,7 @@ def runKNN(trainX, testX, trainY, testY, logFilePath):
 def runAutoEncoder(autoEncoderType, logFilePath, trainX, testX):
     # Initialise, train and test AutoEncoder
     autoEncoder = AutoEncoder(trainX.shape[1], autoEncoderType, logFilePath)
-    autoEncoder.train(trainX, 256, 1)
+    autoEncoder.train(trainX, 256, 100)
     encodedTrainX = autoEncoder.encode(trainX, True)  # This is what we pass to our SOM or KNN to train
     encodedTestX = autoEncoder.encode(testX, False)  # This is what we pass to out SOM or KNN to test
 
@@ -97,7 +97,7 @@ def runAutoEncoder(autoEncoderType, logFilePath, trainX, testX):
 def runSom(gridSize, somSplit, logFilePath, trainX, testX, originalTrainSize, originalTestSize,
            isCoordBased=True, isMultipleSom=False):
     mySom = MySom(trainX, gridSize, logFilePath)
-    mySom.train(1)
+    mySom.train(100)
 
     projectedTrainX = mySom.project(trainX, isTrainData=True)
     projectedTestX = mySom.project(testX, isTrainData=False)
@@ -116,7 +116,6 @@ def runSom(gridSize, somSplit, logFilePath, trainX, testX, originalTrainSize, or
         return projectedTrainX, projectedTestX
 
     return encodedTrainX, encodedTestX
-
 
 if method == Method.EncoderPlusSom:
     runName = RunNameHelper.GetRunName(method, autoEncoderType=aeType, somGridSize=gridSize,
