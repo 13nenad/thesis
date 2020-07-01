@@ -192,7 +192,6 @@ class Preprocessing:
 
     @staticmethod
     def SplitDataByIndex(dataX, numOfSplits, slideDivisor):
-        # Example: (1000, 300) => (1000*somSplit, 300/somSplit) => (2000, 150)
         #splitTrainX = np.reshape(dataX, (dataX.shape[0] * numOfSplits, int(dataX.shape[1] / numOfSplits)))
         windowSize = int(dataX.shape[1] / numOfSplits)
         splitTrainX = Preprocessing.SlidingWindowSplitter(dataX, windowSize, windowSize / slideDivisor)

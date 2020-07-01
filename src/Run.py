@@ -172,15 +172,14 @@ elif method == Method.SingleEncoder:
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
 elif method == Method.MultipleEncoders:
-    splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfAeSplits, slideDivisor=1)
-    splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfAeSplits, slideDivisor=1)
-    numOfSplits = numOfAeSplits * slideDiv - (slideDiv - 1)
+    splitByIndexTrainX = Preprocessing.SplitDataByIndex(dataX=trainX, numOfSplits=numOfAeSplits, slideDivisor=1)
+    splitByIndexTestX = Preprocessing.SplitDataByIndex(dataX=testX, numOfSplits=numOfAeSplits, slideDivisor=1)
 
     for aeType in range(aeTypeStart, aeTypeEnd):
         logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType,
-                                     numOfSomSplits=numOfSplits, numOfInputDim=trainX.shape[1]/numOfSplits)
+                                     numOfSomSplits=numOfAeSplits, numOfInputDim=trainX.shape[1]/numOfAeSplits)
 
-        newTrainX, newTestX = runMultipleEncoder(numOfSplits, aeType, logFilePath,
+        newTrainX, newTestX = runMultipleEncoder(numOfAeSplits, aeType, logFilePath,
                                                  splitByIndexTrainX, splitByIndexTestX)
 
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
@@ -202,8 +201,8 @@ elif method == Method.SingleSom:
         runKNN(encodedTrainX, encodedTestX, trainY, testY, logFilePath)
 
 elif method == Method.MultipleSoms:
-    splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfSomSplits, slideDiv)
-    splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfSomSplits, slideDiv)
+    splitByIndexTrainX = Preprocessing.SplitDataByIndex(data=trainX, numOfSplits=numOfSomSplits, slideDivisor=slideDiv)
+    splitByIndexTestX = Preprocessing.SplitDataByIndex(dataX=testX, numOfSplits=numOfSomSplits, slideDivisor=slideDiv)
     numOfSplits = numOfSomSplits * slideDiv - (slideDiv - 1)
 
     for gridSize in range(gridSizeStart, gridSizeEnd, 5):
