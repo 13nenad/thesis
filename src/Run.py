@@ -176,7 +176,7 @@ elif method == Method.MultipleEncoders:
 
     for aeType in range(aeTypeStart, aeTypeEnd):
         logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType,
-                                     numOfSomSplits=numOfAeSplits, numOfInputDim=trainX.shape[1]/numOfAeSplits)
+                                     numOfAeSplits=numOfAeSplits, numOfInputDim=trainX.shape[1]/numOfAeSplits)
 
         newTrainX, newTestX = runMultipleEncoder(numOfAeSplits, aeType, logFilePath,
                                                  splitByIndexTrainX, splitByIndexTestX)

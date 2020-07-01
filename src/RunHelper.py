@@ -62,7 +62,7 @@ def GetStartingAeType():
 
 def GetEndingAeType():
     print("Ending auto-encoder type (1-12): ")
-    return int(input())
+    return int(input()) + 1
 
 def GetStartingPca():
     print("Starting principal components: ")
@@ -129,6 +129,7 @@ def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=1, numOf
 
 def GetLogFilePath(logFileDir, method, autoEncoderType=0, somGridSize=0, numOfSomSplits=1, numOfAeSplits=1,
                    numOfPcaComp=0, numOfInputDim=0):
-    runName = getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=1, numOfAeSplits=1,
-                         numOfPcaComp=0, numOfInputDim=0)
+    runName = getRunName(method, autoEncoderType=autoEncoderType, somGridSize=somGridSize,
+                         numOfSomSplits=numOfSomSplits, numOfAeSplits=numOfAeSplits,
+                         numOfPcaComp=numOfPcaComp, numOfInputDim=numOfInputDim)
     return logFileDir + runName + ".txt"
