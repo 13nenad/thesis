@@ -123,6 +123,8 @@ class Preprocessing:
 
         return allFilteredSamples
 
+    #dataset = 0 - ICBEB
+    #dataset = 1 - PhysioNet
     @staticmethod
     def AddLabelsToSignals(signalData, labelFilePath, dataset):
         if dataset == 0: # ICBEB dataset
@@ -202,6 +204,8 @@ class Preprocessing:
 
         return splitByIndexTrainX
 
+    # Example: windowSize=150, slide=150 - (1000, 300) => (2000, 150)
+    # If slide=windowSize it is a simple splitter, no sliding window
     @staticmethod
     def SlidingWindowSplitter(dataX, windowSize, slide):
         windowedData = []

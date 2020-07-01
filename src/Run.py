@@ -17,7 +17,7 @@ if runVal == "1":
 elif runVal == "2":
     method = Method.SingleSom
     numOfSomSplits = GetNumOfSomSplits()
-    slideDivisor = GetSlideDivisor()
+    slideDiv = GetSlideDivisor()
     coordBasedVal = GetProjType()
     gridSizeStart = GetStartingGridSize()
     gridSizeEnd = GetEndingGridSize()
@@ -38,7 +38,7 @@ elif runVal == "4":
 elif runVal == "5":
     method = Method.MultipleSoms
     numOfSomSplits = GetNumOfSomSplits()
-    slideDivisor = GetSlideDivisor()
+    slideDiv = GetSlideDivisor()
     gridSizeStart = GetStartingGridSize()
     gridSizeEnd = GetEndingGridSize()
 elif runVal == "6":
@@ -56,7 +56,7 @@ elif runVal == "8":
 elif runVal == "9":
     method = Method.MultipleEncodersAndSOMs
     aeType = GetAeType()
-    slideDivisor = GetSlideDivisor()
+    slideDiv = GetSlideDivisor()
     numOfAeSplits = GetNumOfAeSplits()
     numOfSomSplits = GetNumOfSomSplits()
 
@@ -151,15 +151,14 @@ if method == Method.EncoderPlusSom:
     encodedTrainX, encodedTestX = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
                                                  trainX=trainX, testX=testX)
 
-    # Example: (1000, 300) => (1000*somSplit, 300/somSplit) => (2000, 150)
-    splitTrainX = np.reshape(encodedTrainX, (encodedTrainX.shape[0] * numOfSomSplits,
-                                             int(encodedTrainX.shape[1] / numOfSomSplits)))
-    splitTestX = np.reshape(encodedTestX, (encodedTestX.shape[0] * numOfSomSplits,
-                                           int(encodedTestX.shape[1] / numOfSomSplits)))
+    windowSize = int(encodedTrainX.shape[1] / numOfSomSplits)
+    splitTrainX = Preprocessing.SlidingWindowSplitter(dataX=trainX, windowSize=windowSize, slide=windowSize)
+    splitTestX = Preprocessing.SlidingWindowSplitter(dataX=testX, windowSize=windowSize, slide=windowSize)
 
     encodedTrainX, encodedTestX = runSom(gridSize=gridSize, somSplit=numOfSomSplits, logFilePath=logFilePath,
                                          trainX=splitTrainX, testX=splitTestX, originalTrainSize=encodedTrainX.shape[0],
                                          originalTestSize=encodedTestX.shape[0])
+
     runKNN(encodedTrainX, encodedTestX, trainY, testY, logFilePath)
 
 elif method == Method.SingleEncoder:
@@ -175,7 +174,7 @@ elif method == Method.SingleEncoder:
 elif method == Method.MultipleEncoders:
     splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfAeSplits, slideDivisor=1)
     splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfAeSplits, slideDivisor=1)
-    numOfSplits = numOfAeSplits * slideDivisor - (slideDivisor - 1)
+    numOfSplits = numOfAeSplits * slideDiv - (slideDiv - 1)
 
     for aeType in range(aeTypeStart, aeTypeEnd):
         logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType,
@@ -187,12 +186,10 @@ elif method == Method.MultipleEncoders:
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
 elif method == Method.SingleSom:
-    # Example: (1000, 300) => (1000*somSplit, 300/somSplit) => (2000, 150)
     windowSize = int(trainX.shape[1] / numOfSomSplits)
-    # If the window size is the same as the slide size then there is no overlapping between splits
-    splitTrainX = Preprocessing.SlidingWindowSplitter(trainX, windowSize, windowSize/slideDivisor)
-    splitTestX = Preprocessing.SlidingWindowSplitter(testX, windowSize, windowSize/slideDivisor)
-    numOfSplits = numOfSomSplits*slideDivisor-(slideDivisor-1)
+    splitTrainX = Preprocessing.SlidingWindowSplitter(dataX=trainX, windowSize=windowSize, slide=windowSize / slideDiv)
+    splitTestX = Preprocessing.SlidingWindowSplitter(dataX=testX, windowSize=windowSize, slide=windowSize / slideDiv)
+    numOfSplits = numOfSomSplits * slideDiv - (slideDiv - 1)
 
     for gridSize in range(gridSizeStart, gridSizeEnd, 5):
         logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, somGridSize=gridSize,
@@ -205,9 +202,9 @@ elif method == Method.SingleSom:
         runKNN(encodedTrainX, encodedTestX, trainY, testY, logFilePath)
 
 elif method == Method.MultipleSoms:
-    splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfSomSplits, slideDivisor)
-    splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfSomSplits, slideDivisor)
-    numOfSplits = numOfSomSplits*slideDivisor-(slideDivisor-1)
+    splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfSomSplits, slideDiv)
+    splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfSomSplits, slideDiv)
+    numOfSplits = numOfSomSplits * slideDiv - (slideDiv - 1)
 
     for gridSize in range(gridSizeStart, gridSizeEnd, 5):
         logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, omGridSize=gridSize,
@@ -247,8 +244,9 @@ elif method == Method.PcaPlusSom:
     myPca, newTrainX = MyPCA.ReduceTrainingData(trainX, numOfPrinComp, logFilePath)  # newTrainX = principal components
     newTestX = MyPCA.ReduceTestingData(testX, myPca, logFilePath)
 
-    splitTrainX = np.reshape(newTrainX, (newTrainX.shape[0] * numOfSomSplits, int(newTrainX.shape[1] / numOfSomSplits)))
-    splitTestX = np.reshape(newTestX, (newTestX.shape[0] * numOfSomSplits, int(newTestX.shape[1] / numOfSomSplits)))
+    windowSize = int(newTrainX.shape[1] / numOfSomSplits)
+    splitTrainX = Preprocessing.SlidingWindowSplitter(dataX=trainX, windowSize=windowSize, slide=windowSize)
+    splitTestX = Preprocessing.SlidingWindowSplitter(dataX=testX, windowSize=windowSize, slide=windowSize)
 
     encodedTrainX, encodedTestX = runSom(gridSize=gridSize, somSplit=numOfSomSplits, isCoordBased=isCoordBased,
                                          logFilePath=logFilePath, trainX=splitTrainX, testX=splitTestX,

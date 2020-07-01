@@ -1,7 +1,7 @@
 Definitions:
 numOfSomSplits, numOfAeSplits - The number of chunks you want to split each sample into
-slideDivisor - is used to control how many points you want to slide, creating a sliding
-               window. sliding window = sampleSize/numOfSplits/slideDivisor
+slideDiv - Slide Divisor, is used to control how many points you want to slide, creating a sliding
+           window. sliding window = sampleDim/numOfSplits/slideDiv
 coordBasedVal - Only used for SOMs. It indicates whether the output of the SOM will be a
                 2 dimensional coordinate or just the index of the square. E.g. 3x3 = 9 squares
 aeTypeStart, aeTypeEnd - Auto-encoder architecture type, specified in Autoencoder.py
