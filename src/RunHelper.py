@@ -54,7 +54,7 @@ def GetStartingGridSize():
 
 def GetEndingGridSize():
     print("Ending SOM grid size: ")
-    return int(input())
+    return int(input()) + 1
 
 def GetStartingAeType():
     print("Starting auto-encoder type (1-12): ")

@@ -56,7 +56,6 @@ elif runVal == "8":
 elif runVal == "9":
     method = Method.MultipleEncodersAndSOMs
     aeType = GetAeType()
-    slideDiv = GetSlideDivisor()
     numOfAeSplits = GetNumOfAeSplits()
     numOfSomSplits = GetNumOfSomSplits()
 
