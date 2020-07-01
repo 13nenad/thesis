@@ -94,6 +94,19 @@ def runAutoEncoder(autoEncoderType, logFilePath, trainX, testX):
 
     return encodedTrainX, encodedTestX
 
+def runMultipleEncoder(numOfSplits, aeType, logFilePath, splitByIndexTrainX, splitByIndexTestX):
+    for i in range(numOfSplits):
+        nextTrainX, nextTestX = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
+                                               trainX=splitByIndexTrainX[i], testX=splitByIndexTestX[i])
+        if i == 0:
+            newTrainX = nextTrainX
+            newTestX = nextTestX
+        else:  # merge split encodings
+            newTrainX = np.concatenate((newTrainX, nextTrainX), axis=1)
+            newTestX = np.concatenate((newTestX, nextTestX), axis=1)
+
+    return newTrainX, newTestX
+
 def runSom(gridSize, somSplit, logFilePath, trainX, testX, originalTrainSize, originalTestSize,
            isCoordBased=True, isMultipleSom=False):
     mySom = MySom(trainX, gridSize, logFilePath)
@@ -116,6 +129,21 @@ def runSom(gridSize, somSplit, logFilePath, trainX, testX, originalTrainSize, or
         return projectedTrainX, projectedTestX
 
     return encodedTrainX, encodedTestX
+
+def runMultipleSom(numOfSplits, gridSize, logFilePath, splitByIndexTrainX, splitByIndexTestX, trainX, testX):
+    for i in range(numOfSplits):
+        nextTrainX, nextTestX = runSom(gridSize=gridSize, somSplit=1, logFilePath=logFilePath,
+                                       trainX=splitByIndexTrainX[i], testX=splitByIndexTestX[i],
+                                       originalTrainSize=trainX.shape[0], originalTestSize=testX.shape[0])
+        if i == 0:
+            newTrainX = nextTrainX
+            newTestX = nextTestX
+        else:  # merge split projections
+            newTrainX = np.concatenate((newTrainX, nextTrainX), axis=1)
+            newTestX = np.concatenate((newTestX, nextTestX), axis=1)
+
+    return newTrainX, newTestX
+
 
 if method == Method.EncoderPlusSom:
     runName = RunNameHelper.GetRunName(method, autoEncoderType=aeType, somGridSize=gridSize,
@@ -147,9 +175,8 @@ elif method == Method.SingleEncoder:
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
 elif method == Method.MultipleEncoders:
-    slideDivisor = 2
-    splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfAeSplits, slideDivisor=slideDivisor)
-    splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfAeSplits, slideDivisor=slideDivisor)
+    splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfAeSplits, slideDivisor=1)
+    splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfAeSplits, slideDivisor=1)
     numOfSplits = numOfAeSplits * slideDivisor - (slideDivisor - 1)
 
     for aeType in range(aeTypeStart, aeTypeEnd):
@@ -157,15 +184,8 @@ elif method == Method.MultipleEncoders:
                                            numOfInputDim=trainX.shape[1]/numOfSplits)
         logFilePath = logFileDir + runName + ".txt"
 
-        for i in range(numOfSplits):
-            nextTrainX, nextTestX = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
-                                                   trainX=splitByIndexTrainX[i], testX = splitByIndexTestX[i])
-            if i == 0:
-                newTrainX = nextTrainX
-                newTestX = nextTestX
-            else:  # merge split encodings
-                newTrainX = np.concatenate((newTrainX, nextTrainX), axis=1)
-                newTestX = np.concatenate((newTestX, nextTestX), axis=1)
+        newTrainX, newTestX = runMultipleEncoder(numOfSplits, aeType, logFilePath,
+                                                 splitByIndexTrainX, splitByIndexTestX)
 
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
@@ -194,16 +214,8 @@ elif method == Method.MultipleSoms:
         runName = RunNameHelper.GetRunName(method=method, somGridSize=gridSize, numOfSomSplits=numOfSplits)
         logFilePath = logFileDir + runName + ".txt"
 
-        for i in range(numOfSplits):
-            nextTrainX, nextTestX = runSom(gridSize=gridSize, somSplit=1, logFilePath=logFilePath,
-                                           trainX=splitByIndexTrainX[i], testX=splitByIndexTestX[i],
-                                           originalTrainSize=trainX.shape[0], originalTestSize=testX.shape[0])
-            if i == 0:
-                newTrainX = nextTrainX
-                newTestX = nextTestX
-            else: # merge split projections
-                newTrainX = np.concatenate((newTrainX, nextTrainX), axis=1)
-                newTestX = np.concatenate((newTestX, nextTestX), axis=1)
+        newTrainX, newTestX = runMultipleSom(numOfSplits, gridSize, logFilePath, splitByIndexTrainX,
+                                             splitByIndexTestX, trainX, testX)
 
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
@@ -255,28 +267,14 @@ elif method == Method.MultipleEncodersAndSOMs:
                                        numOfInputDim=trainX.shape[1] / numOfAeSplits)
     logFilePath = logFileDir + runName + ".txt"
 
-    for i in range(numOfAeSplits):
-        nextTrainX, nextTestX = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
-                                               trainX=splitByIndexTrainX[i], testX=splitByIndexTestX[i])
-        if i == 0:
-            newTrainX = nextTrainX
-            newTestX = nextTestX
-        else:  # merge split encodings
-            newTrainX = np.concatenate((newTrainX, nextTrainX), axis=1)
-            newTestX = np.concatenate((newTestX, nextTestX), axis=1)
+    newTrainX, newTestX = runMultipleEncoder(numOfAeSplits, aeType, logFilePath,
+                                             splitByIndexTrainX, splitByIndexTestX)
 
     splitByIndexTrainX = Preprocessing.SplitDataByIndex(newTrainX, numOfSomSplits, slideDivisor=1)
     splitByIndexTestX = Preprocessing.SplitDataByIndex(newTestX, numOfSomSplits, slideDivisor=1)
-    for i in range(numOfSomSplits):
-        nextTrainX, nextTestX = runSom(gridSize=gridSize, somSplit=1, logFilePath=logFilePath,
-                                       trainX=splitByIndexTrainX[i], testX=splitByIndexTestX[i],
-                                       originalTrainSize=trainX.shape[0], originalTestSize=testX.shape[0])
-        if i == 0:
-            newTrainX = nextTrainX
-            newTestX = nextTestX
-        else:  # merge split encodings
-            newTrainX = np.concatenate((newTrainX, nextTrainX), axis=1)
-            newTestX = np.concatenate((newTestX, nextTestX), axis=1)
+
+    newTrainX, newTestX = runMultipleSom(numOfSomSplits, gridSize, logFilePath, splitByIndexTrainX,
+                                         splitByIndexTestX, trainX, testX)
 
     runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
