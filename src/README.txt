@@ -55,7 +55,7 @@ The program currently has 9 different methods that it can run:
 
 Instructions:
 You must have a training set called "TrainingSet.csv" and a testing set called "TestingSet.csv".
-You must specify the directory string on line 63 of where these 2 files live.
+You must specify the directory string on line 66 of where these 2 files live.
 You must also have a folder called "KNN Results" inside this directory.
 Then you just run the Run.py file and follow the prompts. It will output a txt file in the KNN Results folder.
 
