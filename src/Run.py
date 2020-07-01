@@ -1,5 +1,4 @@
 import numpy as np
-import RunNameHelper
 from AutoEncoder import AutoEncoder
 from KNNClassifier import KNNClassifier
 from MyPCA import MyPCA
@@ -8,7 +7,7 @@ from MySom import MySom, translateToCoords
 
 from RunHelper import Method, GetMethodIndex, GetProjType, GetAeType, GetGridSize, GetNumOfPrinComp, \
     GetSlideDivisor, GetSleepIndicator, GetNumOfAeSplits, GetNumOfSomSplits, GetStartingGridSize, \
-    GetEndingGridSize, GetStartingAeType, GetEndingAeType, GetStartingPca, GetEndingPca
+    GetEndingGridSize, GetStartingAeType, GetEndingAeType, GetStartingPca, GetEndingPca, GetLogFilePath
 
 runVal = GetMethodIndex()
 if runVal == "1":
@@ -146,11 +145,10 @@ def runMultipleSom(numOfSplits, gridSize, logFilePath, splitByIndexTrainX, split
 
 
 if method == Method.EncoderPlusSom:
-    runName = RunNameHelper.GetRunName(method, autoEncoderType=aeType, somGridSize=gridSize,
-                                       numOfSomSplits=numOfSomSplits, numOfInputDim=trainX.shape[1])
-    logFilePath = logFileDir + runName + ".txt"
+    logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType, somGridSize=gridSize,
+                                 numOfSomSplits=numOfSomSplits, numOfInputDim=trainX.shape[1])
 
-    encodedTrainX, encodedTestX = runAutoEncoder(autoEncoderType=aeType, runName=runName, logFilePath=logFilePath,
+    encodedTrainX, encodedTestX = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
                                                  trainX=trainX, testX=testX)
 
     # Example: (1000, 300) => (1000*somSplit, 300/somSplit) => (2000, 150)
@@ -159,7 +157,6 @@ if method == Method.EncoderPlusSom:
     splitTestX = np.reshape(encodedTestX, (encodedTestX.shape[0] * numOfSomSplits,
                                            int(encodedTestX.shape[1] / numOfSomSplits)))
 
-    logFilePath = logFileDir + runName + ".txt"
     encodedTrainX, encodedTestX = runSom(gridSize=gridSize, somSplit=numOfSomSplits, logFilePath=logFilePath,
                                          trainX=splitTrainX, testX=splitTestX, originalTrainSize=encodedTrainX.shape[0],
                                          originalTestSize=encodedTestX.shape[0])
@@ -167,9 +164,10 @@ if method == Method.EncoderPlusSom:
 
 elif method == Method.SingleEncoder:
     for aeType in range(aeTypeStart, aeTypeEnd):
-        runName = RunNameHelper.GetRunName(method, autoEncoderType=aeType, numOfInputDim=trainX.shape[1])
-        logFilePath = logFileDir + runName + ".txt"
-        newTrainX, newTestX = runAutoEncoder(autoEncoderType=aeType, runName=runName, logFilePath=logFilePath,
+        logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType,
+                                     numOfInputDim=trainX.shape[1])
+
+        newTrainX, newTestX = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
                                              trainX=trainX, testX=testX)
 
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
@@ -180,9 +178,8 @@ elif method == Method.MultipleEncoders:
     numOfSplits = numOfAeSplits * slideDivisor - (slideDivisor - 1)
 
     for aeType in range(aeTypeStart, aeTypeEnd):
-        runName = RunNameHelper.GetRunName(method, autoEncoderType=aeType, numOfSomSplits=numOfSplits,
-                                           numOfInputDim=trainX.shape[1]/numOfSplits)
-        logFilePath = logFileDir + runName + ".txt"
+        logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType,
+                                     numOfSomSplits=numOfSplits, numOfInputDim=trainX.shape[1]/numOfSplits)
 
         newTrainX, newTestX = runMultipleEncoder(numOfSplits, aeType, logFilePath,
                                                  splitByIndexTrainX, splitByIndexTestX)
@@ -198,11 +195,13 @@ elif method == Method.SingleSom:
     numOfSplits = numOfSomSplits*slideDivisor-(slideDivisor-1)
 
     for gridSize in range(gridSizeStart, gridSizeEnd, 5):
-        runName = RunNameHelper.GetRunName(method, somGridSize=gridSize, numOfSomSplits=numOfSplits)
-        logFilePath = logFileDir + runName + ".txt"
+        logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, somGridSize=gridSize,
+                                     numOfSomSplits=numOfSplits)
+
         encodedTrainX, encodedTestX = runSom(gridSize=gridSize, somSplit=numOfSplits, logFilePath=logFilePath,
                                              trainX=splitTrainX, testX=splitTestX, originalTrainSize=trainX.shape[0],
                                              originalTestSize=testX.shape[0])
+
         runKNN(encodedTrainX, encodedTestX, trainY, testY, logFilePath)
 
 elif method == Method.MultipleSoms:
@@ -211,8 +210,8 @@ elif method == Method.MultipleSoms:
     numOfSplits = numOfSomSplits*slideDivisor-(slideDivisor-1)
 
     for gridSize in range(gridSizeStart, gridSizeEnd, 5):
-        runName = RunNameHelper.GetRunName(method=method, somGridSize=gridSize, numOfSomSplits=numOfSplits)
-        logFilePath = logFileDir + runName + ".txt"
+        logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, omGridSize=gridSize,
+                                     numOfSomSplits=numOfSplits)
 
         newTrainX, newTestX = runMultipleSom(numOfSplits, gridSize, logFilePath, splitByIndexTrainX,
                                              splitByIndexTestX, trainX, testX)
@@ -221,31 +220,29 @@ elif method == Method.MultipleSoms:
 
 elif method == Method.PCA:
     for i in range(pcaStart, pcaEnd):
-        runName = RunNameHelper.GetRunName(method, numOfPcaComp=i)
-        logFilePath = logFileDir + runName + ".txt"
+        logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, numOfPcaComp=i)
+
         myPca, newTrainX = MyPCA.ReduceTrainingData(trainX, i, logFilePath) # newTrainX = principal components
         newTestX = MyPCA.ReduceTestingData(testX, myPca, logFilePath)
 
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
 elif method == Method.PcaPlusEncoder:
-    runName = RunNameHelper.GetRunName(method=method, autoEncoderType=aeType,
+    logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType,
                                        numOfPcaComp=numOfPrinComp, numOfInputDim=numOfPrinComp)
-    logFilePath = logFileDir + runName + ".txt"
 
     myPca, newTrainX = MyPCA.ReduceTrainingData(trainX, numOfPrinComp, logFilePath)  # newTrainX = principal components
     newTestX = MyPCA.ReduceTestingData(testX, myPca, logFilePath)
 
-    newTrainX, newTestX = runAutoEncoder(autoEncoderType=aeType, runName=runName, logFilePath=logFilePath,
-                                                   trainX=newTrainX, testX = newTestX)
+    newTrainX, newTestX = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
+                                         trainX=newTrainX, testX = newTestX)
 
     runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
 elif method == Method.PcaPlusSom:
     gridSize = 40
-    runName = RunNameHelper.GetRunName(method=method, somGridSize=gridSize,
-                                       numOfSomSplits=numOfSomSplits, numOfPcaComp=numOfPrinComp)
-    logFilePath = logFileDir + runName + ".txt"
+    logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, somGridSize=gridSize,
+                                 numOfSomSplits=numOfSomSplits, numOfPcaComp=numOfPrinComp)
 
     myPca, newTrainX = MyPCA.ReduceTrainingData(trainX, numOfPrinComp, logFilePath)  # newTrainX = principal components
     newTestX = MyPCA.ReduceTestingData(testX, myPca, logFilePath)
@@ -262,10 +259,10 @@ elif method == Method.MultipleEncodersAndSOMs:
     gridSize = 40
     splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfAeSplits, slideDivisor=1)
     splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfAeSplits, slideDivisor=1)
-    runName = RunNameHelper.GetRunName(method, autoEncoderType=aeType, somGridSize=gridSize,
-                                       numOfSomSplits=numOfSomSplits, numOfAeSplits=numOfAeSplits,
-                                       numOfInputDim=trainX.shape[1] / numOfAeSplits)
-    logFilePath = logFileDir + runName + ".txt"
+
+    logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType, somGridSize=gridSize,
+                                 numOfSomSplits=numOfSomSplits, numOfAeSplits=numOfAeSplits,
+                                 numOfInputDim=trainX.shape[1] / numOfAeSplits)
 
     newTrainX, newTestX = runMultipleEncoder(numOfAeSplits, aeType, logFilePath,
                                              splitByIndexTrainX, splitByIndexTestX)
