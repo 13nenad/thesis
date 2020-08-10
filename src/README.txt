@@ -55,12 +55,36 @@ The program currently has 9 different methods that it can run:
 
 Instructions:
 You must have a training set called "TrainingSet.csv" and a testing set called "TestingSet.csv".
-You must specify the directory string on line 66 of where these 2 files live.
-You must also have a folder called "KNN Results" inside this directory.
-Then you just run the Run.py file and follow the prompts. It will output a txt file in the KNN Results folder.
+You must specify the directory string on line 65 of where these 2 files live.
+You must also have a folder called "KNN Results" inside this same directory.
+Then you just run the Run.py file and follow the prompts.
+For the first prompt enter the digit which corresponds to the method number.
+After completion, it will output a txt file in the KNN Results folder. The name of the file should give an idea
+about which method and the parameters used.
 
 Note: The last prompt will ask whether you want your device to be put to sleep after your method is run.
-      Enter 1 if you do, anything else if you don't.
+      Enter 1 if you do, any other character if you don't.
 
-
+Example Input:
+1. Single Encoder
+2. Single SOM
+3. Encoder + SOM
+4. Multiple Encoders
+5. Multiple SOMs
+6. PCA Only
+7. PCA + Encoder
+8. PCA + SOM
+9. Multiple Encoders + Multiple SOMs
+>> 2 (Indicates I want to use the Single SOM method)
+Number of SOM splits:
+>> 10 (Indicates I want to split each sample into 10 pieces - each piece will be projected as a coordinate and the
+        projections coming from the same original sample will be concatenated to make an encoding.
+Slide size divisor (1 = no overlapping/sliding):
+>> 1
+Starting SOM grid size:
+>> 5
+Ending SOM grid size:
+>> 50 (This will now train and test on grid sizes 5,10,15,20,25,30,35,40,45,50)
+Put your device to sleep after run (1 = sleep, any other value = don't sleep):
+>> 2
 
