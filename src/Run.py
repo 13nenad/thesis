@@ -200,12 +200,12 @@ elif method == Method.SingleSom:
         runKNN(encodedTrainX, encodedTestX, trainY, testY, logFilePath)
 
 elif method == Method.MultipleSoms:
-    splitByIndexTrainX = Preprocessing.SplitDataByIndex(data=trainX, numOfSplits=numOfSomSplits, slideDivisor=slideDiv)
+    splitByIndexTrainX = Preprocessing.SplitDataByIndex(dataX=trainX, numOfSplits=numOfSomSplits, slideDivisor=slideDiv)
     splitByIndexTestX = Preprocessing.SplitDataByIndex(dataX=testX, numOfSplits=numOfSomSplits, slideDivisor=slideDiv)
     numOfSplits = numOfSomSplits * slideDiv - (slideDiv - 1)
 
     for gridSize in range(gridSizeStart, gridSizeEnd, 5):
-        logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, omGridSize=gridSize,
+        logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, somGridSize=gridSize,
                                      numOfSomSplits=numOfSplits)
 
         newTrainX, newTestX = runMultipleSom(numOfSplits, gridSize, logFilePath, splitByIndexTrainX,
