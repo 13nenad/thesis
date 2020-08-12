@@ -17,14 +17,16 @@ Note: The last prompt will ask whether you want your device to be put to sleep a
 8. PCA + SOM
 9. Multiple Encoders + Multiple SOMs
 
-->> 2 (Indicates I want to use the Single SOM method)
+->> 2 (Indicates you want to use the Single SOM method)
 
 Number of SOM splits:
 
 ->> 10
+
 Slide size divisor (1 = no overlapping/sliding):
 
 ->> 1
+
 Starting SOM grid size:
 
 ->> 5
@@ -46,7 +48,7 @@ slideDiv - Slide Divisor, is used to control how many points you want to slide, 
 coordBasedVal - Only used for SOMs. It indicates whether the output of the SOM will be a
                 2 dimensional coordinate or just the index of the square. E.g. 3x3 = 9 squares
                 
-aeTypeStart, aeTypeEnd - Auto-encoder architecture type, specified in Autoencoder.py
+aeTypeStart, aeTypeEnd - Auto-encoder architecture type, specified in MyAutoEncoder.py
 
 The program currently has 9 different methods that it can run:
 1. A single auto-encoder. It loops over various pre-defined architectures. You need to specify:
