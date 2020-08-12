@@ -129,12 +129,19 @@ def main():
 
     sleepIndicator = GetSleepIndicator()
     import os
-    baseDir = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+    baseDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "data"))
 
     # Initialise training, validation and testing data
-    trainX, trainY = Preprocessing.LoadAllSamplesFromCsv(baseDir + "/TrainingSet.csv", True)
-    testX, testY = Preprocessing.LoadAllSamplesFromCsv(baseDir + "/TestingSet.csv", True)
-    logFileDir = baseDir + "/results/"
+    trainX, trainY = Preprocessing.LoadAllSamplesFromCsv(os.path.join(baseDir, "TrainingSet.csv"), True)
+    testX, testY = Preprocessing.LoadAllSamplesFromCsv(os.path.join(baseDir, "TestingSet.csv"), True)
+    logFileDir = os.path.abspath(os.path.join(baseDir, '..', "results"))
+
+### Used for testing purposes ####
+    # trainX = trainX[0:1000]
+    # trainY = trainY[0:1000]
+    # testX = testX[0:1000]
+    # testY = testY[0:1000]
+##################################
 
     if method == Method.EncoderPlusSom:
         logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType, somGridSize=gridSize,
