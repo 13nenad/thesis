@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.models import Model
 from tensorflow_core.python.keras import losses, Sequential
 
-class AutoEncoder(object):
+class MyAutoEncoder(object):
     # archType - 1 => 300|256|300 : archType - 2 => 300|128|300
     # archType - 3 => 300|64|300  : archType - 4 => 300|32|300
     # archType - 5 => 300|16|300  : archType - 6 => 300|128|64|128|300

@@ -54,12 +54,10 @@ The program currently has 9 different methods that it can run:
     numOfSomSplits
 
 Instructions:
-You must have a training set called "TrainingSet.csv" and a testing set called "TestingSet.csv".
-You must specify the directory string on line 65 of where these 2 files live.
-You must also have a folder called "KNN Results" inside this same directory.
-Then you just run the Run.py file and follow the prompts.
+You must have a training set called "TrainingSet.csv" and a testing set called "TestingSet.csv" which lives
+in the data folder. Then you just run the Run.py file and follow the prompts.
 For the first prompt enter the digit which corresponds to the method number.
-After completion, it will output a txt file in the KNN Results folder. The name of the file should give an idea
+After completion, it will output a txt file into the results folder. The name of the file should give an idea
 about which method and the parameters used.
 
 Note: The last prompt will ask whether you want your device to be put to sleep after your method is run.

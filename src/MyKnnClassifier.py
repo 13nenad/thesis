@@ -4,7 +4,7 @@ from sklearn.metrics import multilabel_confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
 
-class KNNClassifier(object):
+class MyKnnClassifier(object):
 
     # maxK - maximum number of k for kNN
     # cvNum - number of folds for cross validation

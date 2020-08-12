@@ -30,6 +30,16 @@ class Preprocessing:
         return dataSignals
 
     @staticmethod
+    def LoadMitBihDataFromDatFiles(directory):
+        dataSignals = []
+        for filename in os.listdir(directory):
+            if ".dat" in filename:
+                #lines = open(directory + "/" + filename, errors='ignore').readlines()
+                signal = np.loadtxt(directory + "/" + filename)
+
+        return dataSignals
+
+    @staticmethod
     def SaveAllSignalsToCsv(dataSignals, directory):
         for signal in dataSignals:
             np.savetxt(directory + '/Temp.csv', [signal], delimiter=",")
@@ -232,7 +242,7 @@ class Preprocessing:
 #Preprocessing.ReduceSamples("C:/Dev/DataSets/ICBEB/RawSamples/", "TrainingAndValSet.csv", "SmallTrainingSet.csv", 50000)
 #Preprocessing.ReduceSamples("C:/Dev/DataSets/ICBEB/RawSamples/", "TestingSet.csv", "SmallTestingSet.csv", 10000)
 
-#signals = Preprocessing.LoadPhysioNetDataFromMatlabFiles("C:/Dev/DataSets/PhysioNet/MatlabData")
+#signals = Preprocessing.LoadMitBihDataFromDatFiles("C:/Dev/DataSets/mit-bih-arrhythmia")
 #Preprocessing.SaveAllSignalsToCsv(signals, "C:/Dev/DataSets/PhysioNet")
 
 #allSignals = Preprocessing.LoadAllSignalsFromCsv("C:/Dev/DataSets/ICBEB/AllSignalsShort.csv")
