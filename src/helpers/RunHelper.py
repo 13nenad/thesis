@@ -132,4 +132,4 @@ def GetLogFilePath(logFileDir, method, autoEncoderType=0, somGridSize=0, numOfSo
     runName = getRunName(method, autoEncoderType=autoEncoderType, somGridSize=somGridSize,
                          numOfSomSplits=numOfSomSplits, numOfAeSplits=numOfAeSplits,
                          numOfPcaComp=numOfPcaComp, numOfInputDim=numOfInputDim)
-    return logFileDir + runName + ".txt"
+    return logFileDir + "\\" + runName + ".txt"
