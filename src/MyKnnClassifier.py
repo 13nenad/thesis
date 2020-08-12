@@ -36,9 +36,9 @@ class MyKnnClassifier(object):
             tp = mcm[:, 1, 1]
             fn = mcm[:, 1, 0]
             fp = mcm[:, 0, 1]
-            precList = tp / (tp + fp)
-            recallList = tp / (tp + fn)
-            specList = tn / (tn + fp)
+            precList = tp / (tp + fp + 1)
+            recallList = tp / (tp + fn + 1)
+            specList = tn / (tn + fp + 1)
 
             resultsWriter.write(f"KNN testing accuracy: {self.knnGscv.score(testX, testY):0.4f} \r")
             resultsWriter.write(f"KNN testing precision: {sum(precList) / len(precList):0.4f} \r")
