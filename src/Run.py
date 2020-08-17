@@ -125,7 +125,9 @@ def main():
         method = Method.MultipleEncodersAndSOMs
         aeType = GetAeType()
         numOfAeSplits = GetNumOfAeSplits()
+        gridSize = GetGridSize()
         numOfSomSplits = GetNumOfSomSplits()
+        slideDiv = GetSlideDivisor()
 
     sleepIndicator = GetSleepIndicator()
     import os
@@ -190,13 +192,13 @@ def main():
                                                           slide=windowSize / slideDiv)
         splitTestX = Preprocessing.SlidingWindowSplitter(dataX=testX, windowSize=windowSize,
                                                          slide=windowSize / slideDiv)
-        numOfSplits = numOfSomSplits * slideDiv - (slideDiv - 1)
+        numOfOutputDim = numOfSomSplits * slideDiv - (slideDiv - 1)
 
         for gridSize in range(gridSizeStart, gridSizeEnd, 5):
             logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, somGridSize=gridSize,
-                                         numOfSomSplits=numOfSplits)
+                                         numOfSomSplits=numOfOutputDim, slideDiv=slideDiv)
 
-            encodedTrainX, encodedTestX = runSom(gridSize=gridSize, somSplit=numOfSplits, logFilePath=logFilePath,
+            encodedTrainX, encodedTestX = runSom(gridSize=gridSize, somSplit=numOfOutputDim, logFilePath=logFilePath,
                                                  trainX=splitTrainX, testX=splitTestX,
                                                  originalTrainSize=trainX.shape[0],
                                                  originalTestSize=testX.shape[0])
@@ -208,13 +210,13 @@ def main():
                                                             slideDivisor=slideDiv)
         splitByIndexTestX = Preprocessing.SplitDataByIndex(dataX=testX, numOfSplits=numOfSomSplits,
                                                            slideDivisor=slideDiv)
-        numOfSplits = numOfSomSplits * slideDiv - (slideDiv - 1)
+        numOfOutputDim = numOfSomSplits * slideDiv - (slideDiv - 1)
 
         for gridSize in range(gridSizeStart, gridSizeEnd, 5):
             logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, somGridSize=gridSize,
-                                         numOfSomSplits=numOfSplits)
+                                         numOfSomSplits=numOfOutputDim, slideDiv=slideDiv)
 
-            newTrainX, newTestX = runMultipleSom(numOfSplits, gridSize, logFilePath, splitByIndexTrainX,
+            newTrainX, newTestX = runMultipleSom(numOfOutputDim, gridSize, logFilePath, splitByIndexTrainX,
                                                  splitByIndexTestX, trainX, testX)
 
             runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
@@ -260,19 +262,18 @@ def main():
         runKNN(encodedTrainX, encodedTestX, trainY, testY, logFilePath)
 
     elif method == Method.MultipleEncodersAndSOMs:
-        gridSize = 40
         splitByIndexTrainX = Preprocessing.SplitDataByIndex(trainX, numOfAeSplits, slideDivisor=1)
         splitByIndexTestX = Preprocessing.SplitDataByIndex(testX, numOfAeSplits, slideDivisor=1)
 
         logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, autoEncoderType=aeType, somGridSize=gridSize,
                                      numOfSomSplits=numOfSomSplits, numOfAeSplits=numOfAeSplits,
-                                     numOfInputDim=trainX.shape[1] / numOfAeSplits)
+                                     numOfInputDim=trainX.shape[1] / numOfAeSplits, slideDiv=slideDiv)
 
         newTrainX, newTestX = runMultipleEncoder(numOfAeSplits, aeType, logFilePath,
                                                  splitByIndexTrainX, splitByIndexTestX)
 
-        splitByIndexTrainX = Preprocessing.SplitDataByIndex(newTrainX, numOfSomSplits, slideDivisor=1)
-        splitByIndexTestX = Preprocessing.SplitDataByIndex(newTestX, numOfSomSplits, slideDivisor=1)
+        splitByIndexTrainX = Preprocessing.SplitDataByIndex(newTrainX, numOfSomSplits, slideDivisor=slideDiv)
+        splitByIndexTestX = Preprocessing.SplitDataByIndex(newTestX, numOfSomSplits, slideDivisor=slideDiv)
 
         newTrainX, newTestX = runMultipleSom(numOfSomSplits, gridSize, logFilePath, splitByIndexTrainX,
                                              splitByIndexTestX, trainX, testX)

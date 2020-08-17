@@ -103,6 +103,8 @@ The program currently has 9 different methods that it can run:
        aeType
        slideDivisor
        numOfAeSplits
+       gridSize
        numOfSomSplits
+       slideDiv
 
 

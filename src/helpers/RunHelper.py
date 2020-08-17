@@ -90,7 +90,7 @@ def getAeArchStr(autoEncoderType, numOfInputDim):
     return archStr.replace("X", str(int(numOfInputDim)))
 
 def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=1, numOfAeSplits=1,
-               numOfPcaComp=0, numOfInputDim=0):
+               numOfPcaComp=0, numOfInputDim=0, slideDiv=1):
 
     if (method == Method.SingleEncoder or method == Method.EncoderPlusSom or method == Method.MultipleEncoders or
         method == Method.PcaPlusEncoder or method == Method.MultipleEncodersAndSOMs) and numOfInputDim == 0:
@@ -125,11 +125,14 @@ def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=1, numOf
     if numOfSomSplits != 1:
         runName += "-Split-" + str(numOfSomSplits)
 
+    if slideDiv != 1:
+        runName += "-SlideDiv-" + str(slideDiv)
+
     return runName
 
 def GetLogFilePath(logFileDir, method, autoEncoderType=0, somGridSize=0, numOfSomSplits=1, numOfAeSplits=1,
-                   numOfPcaComp=0, numOfInputDim=0):
+                   numOfPcaComp=0, numOfInputDim=0, slideDiv=1):
     runName = getRunName(method, autoEncoderType=autoEncoderType, somGridSize=somGridSize,
                          numOfSomSplits=numOfSomSplits, numOfAeSplits=numOfAeSplits,
-                         numOfPcaComp=numOfPcaComp, numOfInputDim=numOfInputDim)
+                         numOfPcaComp=numOfPcaComp, numOfInputDim=numOfInputDim, slideDiv=slideDiv)
     return logFileDir + "\\" + runName + ".txt"
