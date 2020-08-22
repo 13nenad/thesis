@@ -153,8 +153,8 @@ def main():
                                                      trainX=trainX, testX=testX)
 
         windowSize = int(encodedTrainX.shape[1] / numOfSomSplits)
-        splitTrainX = Preprocessing.SlidingWindowSplitter(dataX=trainX, windowSize=windowSize, slide=windowSize)
-        splitTestX = Preprocessing.SlidingWindowSplitter(dataX=testX, windowSize=windowSize, slide=windowSize)
+        splitTrainX = Preprocessing.SlidingWindowSplitter(dataX=encodedTrainX, windowSize=windowSize, slide=windowSize)
+        splitTestX = Preprocessing.SlidingWindowSplitter(dataX=encodedTestX, windowSize=windowSize, slide=windowSize)
 
         encodedTrainX, encodedTestX = runSom(gridSize=gridSize, somSplit=numOfSomSplits, logFilePath=logFilePath,
                                              trainX=splitTrainX, testX=splitTestX,
@@ -253,8 +253,8 @@ def main():
         newTestX = MyPCA.ReduceTestingData(testX, myPca, logFilePath)
 
         windowSize = int(newTrainX.shape[1] / numOfSomSplits)
-        splitTrainX = Preprocessing.SlidingWindowSplitter(dataX=trainX, windowSize=windowSize, slide=windowSize)
-        splitTestX = Preprocessing.SlidingWindowSplitter(dataX=testX, windowSize=windowSize, slide=windowSize)
+        splitTrainX = Preprocessing.SlidingWindowSplitter(dataX=newTrainX, windowSize=windowSize, slide=windowSize)
+        splitTestX = Preprocessing.SlidingWindowSplitter(dataX=newTestX, windowSize=windowSize, slide=windowSize)
 
         encodedTrainX, encodedTestX = runSom(gridSize=gridSize, somSplit=numOfSomSplits, isCoordBased=isCoordBased,
                                              logFilePath=logFilePath, trainX=splitTrainX, testX=splitTestX,
@@ -276,7 +276,7 @@ def main():
         splitByIndexTestX = Preprocessing.SplitDataByIndex(newTestX, numOfSomSplits, slideDivisor=slideDiv)
 
         newTrainX, newTestX = runMultipleSom(numOfSomSplits, gridSize, logFilePath, splitByIndexTrainX,
-                                             splitByIndexTestX, trainX, testX)
+                                             splitByIndexTestX, newTrainX, newTestX)
 
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
