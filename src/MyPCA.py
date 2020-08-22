@@ -12,7 +12,7 @@ class MyPCA(object):
         toc = time.perf_counter()
 
         with open(logFilePath, "a") as resultsWriter:
-            resultsWriter.write(f"PCA training samples time: {toc - tic:0.4f} seconds \r")
+            resultsWriter.write(f"\rPCA training samples time: {toc - tic:0.4f} seconds \r")
 
         return pca, principalComponents
 

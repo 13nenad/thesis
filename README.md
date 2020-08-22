@@ -6,6 +6,20 @@
 
 Note: The last prompt will ask whether you want your device to be put to sleep after your method is run. Enter 1 if you do, any other character if you don't.
 
+#### Output File
+The output file will contain:
+* The parameters you have chosen. These will always be at the top.
+* The training time of your method chosen. 
+* The training encoding time i.e. the time it took to encode all of the training samples.
+* The testing encoding time i.e. the time it took to encode all of the testing samples.
+* The kNN training time
+* The best value for k (always between 1-9, inclusive)
+* The associated best validation accuracy
+* The evaluation metrics; accuracy, precision, recall and specificity
+* The kNN classification time.
+
+Note: If the method chosen is of multiple nature, it will in addition display the totals of each of the training and encoding times. 
+
 #### Example Input/Output
 1. Single Encoder
 2. Single SOM
@@ -74,7 +88,7 @@ The program currently has 9 different methods that it can run:
     
        numOfAeSplits
        aeTypeStart
-       aeTypeEn
+       aeTypeEnd
 
 5. Multiple SOMs. It loops over a specified number of different grid sizes, step size = 5. You will need to specify:
     
@@ -98,7 +112,7 @@ The program currently has 9 different methods that it can run:
        numOfPrincComp
        numOfSomSplits
 
-9. Multiple auto-encoders + multiple SOMs. The grid size is fixed to 40. You will need to specify:
+9. Multiple auto-encoders + multiple SOMs. You will need to specify:
     
        aeType
        slideDivisor

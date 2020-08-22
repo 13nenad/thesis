@@ -12,7 +12,7 @@ class Method(enum.Enum):
    MultipleEncodersAndSOMs = 9
 
 def GetMethodIndex():
-    print("1. Single Encoder\n2. Single SOM\n3. Encoder + SOM\n4. Multiple Encoders\n5. Multiple SOMs\n6. PCA Only"\
+    print("1. Single Encoder\n2. Single SOM\n3. Encoder + SOM\n4. Multiple Encoders\n5. Multiple SOMs\n6. PCA"\
           "\n7. PCA + Encoder\n8. PCA + SOM\n9. Multiple Encoders + Multiple SOMs")
     return input()
 
@@ -21,7 +21,7 @@ def GetProjType():
     return input()
 
 def GetAeType():
-    print("Auto-encoder type (1-12): ")
+    print("Auto-encoder architecture (1-12): ")
     return int(input())
 
 def GetGridSize():
@@ -70,7 +70,7 @@ def GetStartingPca():
 
 def GetEndingPca():
     print("Ending principal components: ")
-    return int(input())
+    return int(input()) + 1
 
 def getAeArchStr(autoEncoderType, numOfInputDim):
     archStr = ""
@@ -89,8 +89,8 @@ def getAeArchStr(autoEncoderType, numOfInputDim):
 
     return archStr.replace("X", str(int(numOfInputDim)))
 
-def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=1, numOfAeSplits=1,
-               numOfPcaComp=0, numOfInputDim=0, slideDiv=1):
+def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=0, numOfAeSplits=0,
+               numOfPcaComp=0, numOfInputDim=0, slideDiv=0):
 
     if (method == Method.SingleEncoder or method == Method.EncoderPlusSom or method == Method.MultipleEncoders or
         method == Method.PcaPlusEncoder or method == Method.MultipleEncodersAndSOMs) and numOfInputDim == 0:
@@ -122,17 +122,45 @@ def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=1, numOf
         runName += "-Split-" + str(numOfAeSplits)
         runName += "-Multiple-SOM-" + str(somGridSize)
 
-    if numOfSomSplits != 1:
+    if numOfSomSplits != 0:
         runName += "-Split-" + str(numOfSomSplits)
 
-    if slideDiv != 1:
+    if slideDiv != 0:
         runName += "-SlideDiv-" + str(slideDiv)
+        numOfOutputDim = numOfSomSplits * slideDiv - (slideDiv - 1)
+        runName += "-TotalSplits-" + str(numOfOutputDim)
 
     return runName
 
-def GetLogFilePath(logFileDir, method, autoEncoderType=0, somGridSize=0, numOfSomSplits=1, numOfAeSplits=1,
-                   numOfPcaComp=0, numOfInputDim=0, slideDiv=1):
-    runName = getRunName(method, autoEncoderType=autoEncoderType, somGridSize=somGridSize,
+def GetLogFilePath(logFileDir, method, aeType=0, gridSize=0, numOfSomSplits=0, numOfAeSplits=0,
+                   numOfPcaComp=0, numOfInputDim=0, slideDiv=0, projType=""):
+    runName = getRunName(method, autoEncoderType=aeType, somGridSize=gridSize,
                          numOfSomSplits=numOfSomSplits, numOfAeSplits=numOfAeSplits,
                          numOfPcaComp=numOfPcaComp, numOfInputDim=numOfInputDim, slideDiv=slideDiv)
-    return logFileDir + "\\" + runName + ".txt"
+
+    logFilePath = logFileDir + "\\" + runName + ".txt"
+
+    printParams(logFilePath=logFilePath, method=method, aeType=aeType, numOfInputDim=numOfInputDim, gridSize=gridSize,
+                numOfAeSplits=numOfAeSplits, numOfSomSplits=numOfSomSplits, slideDiv=slideDiv, projType=projType,
+                numOfPcaComp=numOfPcaComp)
+
+    return logFilePath
+
+
+def printParams(logFilePath, method, projType="", aeType=0, numOfInputDim=0, gridSize=0, numOfPcaComp=0,
+                slideDiv=0, numOfAeSplits=0, numOfSomSplits=0):
+    if projType == "1": projType = "Coordinate-based"
+    elif projType == "2": projType = "Label-based"
+
+    with open(logFilePath, "a") as resultsWriter:
+        resultsWriter.write(f"Method: {method} \r")
+        if aeType != 0: resultsWriter.write(f"Auto-encoder architecture: {getAeArchStr(aeType, numOfInputDim)} \r")
+        if numOfAeSplits != 0: resultsWriter.write(f"Number of auto-encoder splits: {numOfAeSplits} \r")
+        if projType != "": resultsWriter.write(f"SOM projection: {projType} \r")
+        if gridSize != 0: resultsWriter.write(f"Grid size: {gridSize} \r")
+        if numOfSomSplits != 0: resultsWriter.write(f"Number of SOM splits: {numOfSomSplits} \r")
+        if slideDiv != 0:
+            resultsWriter.write(f"Slide size divisor: {slideDiv} \r")
+            numOfOutputDim = numOfSomSplits * slideDiv - (slideDiv - 1)
+            resultsWriter.write(f"Number of total SOM splits: {numOfOutputDim} \r")
+        if numOfPcaComp != 0: resultsWriter.write(f"Number of PCA components: {numOfPcaComp} \r")

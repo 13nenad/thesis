@@ -21,7 +21,7 @@ class MyKnnClassifier(object):
         toc = time.perf_counter()
 
         with open(self.logFilePath, "a") as resultsWriter:
-            resultsWriter.write(f"KNN training time: {toc - tic:0.4f} seconds \r")
+            resultsWriter.write(f"\rKNN training time: {toc - tic:0.4f} seconds \r")
 
             resultsWriter.write("Best k: " + str(self.knnGscv.best_params_["n_neighbors"]) + "\r")
             resultsWriter.write(f"Best validation accuracy: {self.knnGscv.best_score_:0.4f} \r")
@@ -40,9 +40,9 @@ class MyKnnClassifier(object):
             recallList = tp / (tp + fn + 1)
             specList = tn / (tn + fp + 1)
 
-            resultsWriter.write(f"KNN testing accuracy: {self.knnGscv.score(testX, testY):0.4f} \r")
-            resultsWriter.write(f"KNN testing precision: {sum(precList) / len(precList):0.4f} \r")
-            resultsWriter.write(f"KNN testing recall: {sum(recallList) / len(recallList):0.4f} \r")
-            resultsWriter.write(f"KNN testing specificity: {sum(specList) / len(specList):0.4f} \r")
+            resultsWriter.write(f"KNN classification accuracy: {self.knnGscv.score(testX, testY):0.4f} \r")
+            resultsWriter.write(f"KNN classification precision: {sum(precList) / len(precList):0.4f} \r")
+            resultsWriter.write(f"KNN classification recall: {sum(recallList) / len(recallList):0.4f} \r")
+            resultsWriter.write(f"KNN classification specificity: {sum(specList) / len(specList):0.4f} \r")
             toc = time.perf_counter()
-            resultsWriter.write(f"KNN testing time: {toc - tic:0.4f} seconds \r")
+            resultsWriter.write(f"KNN classification time: {toc - tic:0.4f} seconds \r")

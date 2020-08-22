@@ -25,7 +25,9 @@ class MySom(object):
         toc = time.perf_counter()
 
         with open(self.logFilePath, "a") as resultsWriter:
-            resultsWriter.write(f"SOM training time: {toc - tic:0.4f} seconds \r")
+            resultsWriter.write(f"\rSOM training time: {toc - tic:0.4f} seconds \r")
+
+        return toc - tic
 
     def project(self, dataX, isTrainData):
         tic = time.perf_counter()
@@ -34,8 +36,8 @@ class MySom(object):
 
         with open(self.logFilePath, "a") as resultsWriter:
             if isTrainData:
-                resultsWriter.write(f"Encoding training samples time: {toc - tic:0.4f} seconds \r")
+                resultsWriter.write(f"SOM training encoding time: {toc - tic:0.4f} seconds \r")
             else:
-                resultsWriter.write(f"Encoding testing samples time: {toc - tic:0.4f} seconds \r")
+                resultsWriter.write(f"SOM testing encoding time: {toc - tic:0.4f} seconds \r")
 
-        return projectedDataX
+        return projectedDataX, toc - tic

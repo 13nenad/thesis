@@ -118,7 +118,9 @@ class MyAutoEncoder(object):
         toc = time.perf_counter()
 
         with open(self.logFilePath, "a") as resultsWriter:
-            resultsWriter.write(f"AutoEncoder training time: {toc - tic:0.4f} seconds \r")
+            resultsWriter.write(f"\rAutoEncoder training time: {toc - tic:0.4f} seconds \r")
+
+        return toc - tic
 
     def encode(self, dataX, isTrainData):
         tic = time.perf_counter()
@@ -126,9 +128,9 @@ class MyAutoEncoder(object):
         toc = time.perf_counter()
         if isTrainData:
             with open(self.logFilePath, "a") as resultsWriter:
-                resultsWriter.write(f"Encoding training samples time: {toc - tic:0.4f} seconds \r")
+                resultsWriter.write(f"AutoEncoder training encoding time: {toc - tic:0.4f} seconds \r")
         else:
             with open(self.logFilePath, "a") as resultsWriter:
-                resultsWriter.write(f"Encoding testing samples time: {toc - tic:0.4f} seconds \r")
+                resultsWriter.write(f"AutoEncoder testing encoding time: {toc - tic:0.4f} seconds \r")
 
-        return encodedDataX
+        return encodedDataX, toc - tic
