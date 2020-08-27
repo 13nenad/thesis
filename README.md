@@ -20,6 +20,12 @@ The output file will contain:
 
 Note: If the method chosen is of multiple nature, it will in addition display the totals of each of the training and encoding times. 
 
+#### Extras
+Since the hexagonal topology and bubble neighbourhood function were only used for one experiment each I did not bother 
+to make them configurable. If you would like to try these parameters you can go to line 19 in MySom.py and:
+* Replace lattice="rect" with lattice="hexa"
+* Insert neighborhood="bubble" as an argument (default is gaussian)
+
 #### Example Input/Output
 1. Single Encoder
 2. Single SOM
@@ -30,6 +36,7 @@ Note: If the method chosen is of multiple nature, it will in addition display th
 7. PCA + Encoder
 8. PCA + SOM
 9. Multiple Encoders + Multiple SOMs
+10. No Dimensionality Reduction
 
 ->> 2 (Indicates you want to use the Single SOM method)
 
@@ -120,5 +127,8 @@ The program currently has 9 different methods that it can run:
        gridSize
        numOfSomSplits
        slideDiv
+       
+10. No Dimensionality Reduction. You do not need to specify any further arguments.
+    This will purely only run the kNN classifier.
 
 

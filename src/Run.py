@@ -167,6 +167,8 @@ def main():
         projType = GetProjType()
         numOfSomSplits = GetNumOfSomSplits()
         slideDiv = GetSlideDivisor()
+    elif runVal == "10":
+        method = Method.NoDimReduction
 
     sleepIndicator = GetSleepIndicator()
     # Initialise training, validation and testing data
@@ -313,6 +315,10 @@ def main():
                                              splitByIndexTestX, newTrainX, newTestX)
 
         runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
+
+    elif method == Method.NoDimReduction:
+        logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir)
+        runKNN(trainX, testX, trainY, testY, logFilePath)
 
     if sleepIndicator == 1:
         import os

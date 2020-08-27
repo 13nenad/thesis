@@ -10,10 +10,11 @@ class Method(enum.Enum):
    PcaPlusEncoder = 7
    PcaPlusSom = 8
    MultipleEncodersAndSOMs = 9
+   NoDimReduction = 10
 
 def GetMethodIndex():
     print("1. Single Encoder\n2. Single SOM\n3. Encoder + SOM\n4. Multiple Encoders\n5. Multiple SOMs\n6. PCA"\
-          "\n7. PCA + Encoder\n8. PCA + SOM\n9. Multiple Encoders + Multiple SOMs")
+          "\n7. PCA + Encoder\n8. PCA + SOM\n9. Multiple Encoders + Multiple SOMs\n10. No Dimensionality Reduction")
     return input()
 
 def GetProjType():
@@ -122,10 +123,10 @@ def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=0, numOf
         runName += "-Split-" + str(numOfAeSplits)
         runName += "-Multiple-SOM-" + str(somGridSize)
 
-    if numOfSomSplits != 0:
+    if numOfSomSplits > 1:
         runName += "-Split-" + str(numOfSomSplits)
 
-    if slideDiv != 0:
+    if slideDiv > 1:
         runName += "-SlideDiv-" + str(slideDiv)
         numOfOutputDim = numOfSomSplits * slideDiv - (slideDiv - 1)
         runName += "-TotalSplits-" + str(numOfOutputDim)
