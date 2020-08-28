@@ -30,16 +30,6 @@ class Preprocessing:
         return dataSignals
 
     @staticmethod
-    def LoadMitBihDataFromDatFiles(directory):
-        dataSignals = []
-        for filename in os.listdir(directory):
-            if ".dat" in filename:
-                #lines = open(directory + "/" + filename, errors='ignore').readlines()
-                signal = np.loadtxt(directory + "/" + filename)
-
-        return dataSignals
-
-    @staticmethod
     def SaveAllSignalsToCsv(dataSignals, directory):
         for signal in dataSignals:
             np.savetxt(directory + '/Temp.csv', [signal], delimiter=",")
@@ -223,38 +213,3 @@ class Preprocessing:
             windowedData += dataSplit
 
         return np.array(windowedData)
-
-    @staticmethod
-    def RemoveOutliers(dataX, dataY):
-        filteredDataX = []
-        filteredDataY = []
-        for i in range(len(dataX)):
-            maxVal = np.max(dataX[i])
-            if maxVal < 2:
-                filteredDataX.append(dataX[i])
-                filteredDataY.append(dataY[i])
-
-        return np.array(filteredDataX), np.array(filteredDataY)
-
-#dataX = [[1,2,3,4,5,6,7,8,9,10,11,12], [13,14,15,16,17,18,19,20,21,22,23,24]]
-#a = Preprocessing.SlidingWindowSplitter(dataX, 4, 3)
-#b = 5
-#Preprocessing.ReduceSamples("C:/Dev/DataSets/ICBEB/RawSamples/", "TrainingAndValSet.csv", "SmallTrainingSet.csv", 50000)
-#Preprocessing.ReduceSamples("C:/Dev/DataSets/ICBEB/RawSamples/", "TestingSet.csv", "SmallTestingSet.csv", 10000)
-
-#signals = Preprocessing.LoadMitBihDataFromDatFiles("C:/Dev/DataSets/mit-bih-arrhythmia")
-#Preprocessing.SaveAllSignalsToCsv(signals, "C:/Dev/DataSets/PhysioNet")
-
-#allSignals = Preprocessing.LoadAllSignalsFromCsv("C:/Dev/DataSets/ICBEB/AllSignalsShort.csv")
-#allSignals = Preprocessing.AddLabelsToSignals(allSignals, "C:/Dev/DataSets/PhysioNet/Labels.csv", 1)
-#Preprocessing.SaveAllSignalsToCsv(allSignals, "C:/Dev/DataSets/PhysioNet")
-
-#dataX, dataY = Preprocessing.LoadAllSamplesFromCsv("C:/Dev/DataSets/ICBEB/Raw/AllSamples.csv", True, 301)
-#Preprocessing.PlotHeartbeats(dataX, 37, 38, 500)
-#Preprocessing.RemoveOutliers(dataX)
-#out = ecg.ecg(signal=allSignals[0], sampling_rate=500, show=True)
-
-#rawSamples = Preprocessing.GetRawSamplesFromSignals(allSignals, 300)
-#Preprocessing.SaveAllSamplesToCsv(rawSamples, "C:/Dev/DataSets/PhysioNet/Raw/AllSamples.csv")
-#Preprocessing.SplitSamplesAndSave("C:/Dev/DataSets/PhysioNet/Raw/", "AllSamples.csv", "TrainingSet.csv", "TestingSet.csv", 181)
-

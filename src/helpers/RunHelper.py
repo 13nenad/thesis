@@ -122,6 +122,8 @@ def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=0, numOf
         runName += "Multiple-" + getAeArchStr(autoEncoderType, numOfInputDim)
         runName += "-Split-" + str(numOfAeSplits)
         runName += "-Multiple-SOM-" + str(somGridSize)
+    elif method == Method.NoDimReduction:
+        runName += "NoDimensionalityReduction"
 
     if numOfSomSplits > 1:
         runName += "-Split-" + str(numOfSomSplits)
