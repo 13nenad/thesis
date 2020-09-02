@@ -1,13 +1,15 @@
 import numpy as np
+from tensorflow import keras
+
 from MyAutoEncoder import MyAutoEncoder
 from MyKnnClassifier import MyKnnClassifier
 from MyPCA import MyPCA
-from Preprocessing import Preprocessing
 from MySom import MySom, translateToCoords
-
+from Preprocessing import Preprocessing
 from helpers.RunHelper import Method, GetMethodIndex, GetProjType, GetAeType, GetGridSize, GetNumOfPrinComp, \
     GetSlideDivisor, GetSleepIndicator, GetNumOfAeSplits, GetNumOfSomSplits, GetStartingGridSize, \
-    GetEndingGridSize, GetStartingAeType, GetEndingAeType, GetStartingPca, GetEndingPca, GetLogFilePath, printParams
+    GetEndingGridSize, GetStartingAeType, GetEndingAeType, GetStartingPca, GetEndingPca, GetLogFilePath, \
+    GetSaveModelIndicator
 
 
 def runKNN(trainX, testX, trainY, testY, logFilePath):
@@ -16,47 +18,58 @@ def runKNN(trainX, testX, trainY, testY, logFilePath):
     knn.train(trainX, trainY)
     knn.test(testX, testY)
 
-def runAutoEncoder(autoEncoderType, logFilePath, trainX, testX):
-    # Initialise, train and test AutoEncoder
-    autoEncoder = MyAutoEncoder(trainX.shape[1], autoEncoderType, logFilePath)
-    trainingTime = autoEncoder.train(trainX, 256, 100)
+def runAutoEncoder(logFilePath, trainX, testX, autoEncoderType=0,
+                   saveModel=False, loadModel=False, modelPath=""):
+    if not loadModel:
+        autoEncoder = MyAutoEncoder(logFilePath, trainX.shape[1], autoEncoderType)
+        trainingTime = autoEncoder.train(trainX, 256, 100) # Train a new model
+
+        if saveModel: # Save the model in the models folder
+            autoEncoder.encoderModel.save(modelPath)
+    else: # Load a saved model
+        autoEncoder = MyAutoEncoder(logFilePath)
+        autoEncoder.encoderModel = keras.models.load_model(modelPath)
+        trainingTime = 0
+
     encodedTrainX, trainEncodingTime = autoEncoder.encode(trainX, True)  # This is what we pass to our SOM or KNN to train
     encodedTestX, testEncodingTime = autoEncoder.encode(testX, False)  # This is what we pass to out SOM or KNN to test
 
     return encodedTrainX, encodedTestX, trainingTime, trainEncodingTime, testEncodingTime
 
-def runMultipleEncoder(numOfSplits, aeType, logFilePath, splitByIndexTrainX, splitByIndexTestX):
+def runMultipleEncoder(numOfSplits, aeType, logFilePath, splitByIndexTrainX, splitByIndexTestX,
+                       modelPath="", saveModel=False):
     totalTrainingTime = 0
     totalTrainEncodingTime = 0
     totalTestEncodingTime = 0
+    basePath = modelPath
 
     for i in range(numOfSplits):
-        nextTrainX, nextTestX, trainingTime, trainEncodingTime, testEncodingTime\
-            = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
-                            trainX=splitByIndexTrainX[i], testX=splitByIndexTestX[i])
+        if saveModel: modelPath = basePath + "-(" + str(i+1) + ").h5"
+        aeResults = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath, trainX=splitByIndexTrainX[i],
+                                   testX=splitByIndexTestX[i], saveModel=saveModel, modelPath=modelPath)
 
-        totalTrainingTime += trainingTime
-        totalTrainEncodingTime += trainEncodingTime
-        totalTestEncodingTime += testEncodingTime
+        totalTrainingTime += aeResults[2]
+        totalTrainEncodingTime += aeResults[3]
+        totalTestEncodingTime += aeResults[4]
 
         if i == 0:
-            newTrainX = nextTrainX
-            newTestX = nextTestX
+            newTrainX = aeResults[0]
+            newTestX = aeResults[1]
         else:  # merge split encodings
-            newTrainX = np.concatenate((newTrainX, nextTrainX), axis=1)
-            newTestX = np.concatenate((newTestX, nextTestX), axis=1)
+            newTrainX = np.concatenate((newTrainX, aeResults[0]), axis=1)
+            newTestX = np.concatenate((newTestX, aeResults[1]), axis=1)
 
     with open(logFilePath, "a") as resultsWriter:
-        resultsWriter.write(f"\rTotal encoder training time: {totalTrainingTime:0.4f} seconds \r")
+        resultsWriter.write(f"Total encoder training time: {totalTrainingTime:0.4f} seconds \r")
         resultsWriter.write(f"Total encoder training encoding time: {totalTrainEncodingTime:0.4f} seconds \r")
-        resultsWriter.write(f"Total encoder testing encoding time: {totalTestEncodingTime:0.4f} seconds \r")
+        resultsWriter.write(f"Total encoder testing encoding time: {totalTestEncodingTime:0.4f} seconds \r\r")
 
     return newTrainX, newTestX
 
 def runSom(gridSize, somSplit, logFilePath, trainX, testX, originalTrainSize, originalTestSize,
            isCoordBased=True, isMultipleSom=False):
     mySom = MySom(trainX, gridSize, logFilePath)
-    trainingTime = mySom.train(100)
+    trainingTime = mySom.train(1)
 
     projectedTrainX, trainEncodingTime = mySom.project(trainX, isTrainData=True)
     projectedTestX, testEncodingTime = mySom.project(testX, isTrainData=False)
@@ -82,24 +95,22 @@ def runMultipleSom(numOfSplits, gridSize, logFilePath, splitByIndexTrainX, split
     totalTestEncodingTime = 0
 
     for i in range(numOfSplits):
-        nextTrainX, nextTestX, trainingTime, trainEncodingTime, testEncodingTime\
-            = runSom(gridSize=gridSize, somSplit=1, logFilePath=logFilePath,
-                    trainX=splitByIndexTrainX[i], testX=splitByIndexTestX[i],
-                    originalTrainSize=trainX.shape[0], originalTestSize=testX.shape[0])
+        somResults = runSom(gridSize=gridSize, somSplit=1, logFilePath=logFilePath, trainX=splitByIndexTrainX[i],
+                        testX=splitByIndexTestX[i], originalTrainSize=trainX.shape[0], originalTestSize=testX.shape[0])
 
-        totalTrainingTime += trainingTime
-        totalTrainEncodingTime += trainEncodingTime
-        totalTestEncodingTime += testEncodingTime
+        totalTrainingTime += somResults[2]
+        totalTrainEncodingTime += somResults[3]
+        totalTestEncodingTime += somResults[4]
 
         if i == 0:
-            newTrainX = nextTrainX
-            newTestX = nextTestX
+            newTrainX = somResults[0]
+            newTestX = somResults[1]
         else:  # merge split projections
-            newTrainX = np.concatenate((newTrainX, nextTrainX), axis=1)
-            newTestX = np.concatenate((newTestX, nextTestX), axis=1)
+            newTrainX = np.concatenate((newTrainX, somResults[0]), axis=1)
+            newTestX = np.concatenate((newTestX, somResults[1]), axis=1)
 
     with open(logFilePath, "a") as resultsWriter:
-        resultsWriter.write(f"\rTotal SOM training time: {totalTrainingTime:0.4f} seconds \r")
+        resultsWriter.write(f"Total SOM training time: {totalTrainingTime:0.4f} seconds \r")
         resultsWriter.write(f"Total SOM training encoding time: {totalTrainEncodingTime:0.4f} seconds \r")
         resultsWriter.write(f"Total SOM testing encoding time: {totalTestEncodingTime:0.4f} seconds \r")
 
@@ -107,14 +118,17 @@ def runMultipleSom(numOfSplits, gridSize, logFilePath, splitByIndexTrainX, split
 
 def main():
     import os
-    baseDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "data"))
-    logFileDir = os.path.abspath(os.path.join(baseDir, '..', "results"))
+    dataDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "data"))
+    logFileDir = os.path.abspath(os.path.join(dataDir, '..', "results"))
 
     runVal = GetMethodIndex()
     if runVal == "1":
         method = Method.SingleEncoder
         aeTypeStart = GetStartingAeType()
         aeTypeEnd = GetEndingAeType()
+        saveVal = GetSaveModelIndicator()
+        if saveVal == "1": saveModel = True
+        else: saveModel = False
     elif runVal == "2":
         method = Method.SingleSom
         numOfSomSplits = GetNumOfSomSplits()
@@ -137,6 +151,9 @@ def main():
         numOfAeSplits = GetNumOfAeSplits()
         aeTypeStart = GetStartingAeType()
         aeTypeEnd = GetEndingAeType()
+        saveVal = GetSaveModelIndicator()
+        if saveVal == "1": saveModel = True
+        else: saveModel = False
     elif runVal == "5":
         method = Method.MultipleSoms
         numOfSomSplits = GetNumOfSomSplits()
@@ -169,11 +186,15 @@ def main():
         slideDiv = GetSlideDivisor()
     elif runVal == "10":
         method = Method.NoDimReduction
+    elif runVal == "11":
+        method = Method.LoadEncoder
+    elif runVal == "12":
+        method = Method.LoadMultipleEncoder
 
     sleepIndicator = GetSleepIndicator()
-    # Initialise training, validation and testing data
-    trainX, trainY = Preprocessing.LoadAllSamplesFromCsv(os.path.join(baseDir, "TrainingSet.csv"), True)
-    testX, testY = Preprocessing.LoadAllSamplesFromCsv(os.path.join(baseDir, "TestingSet.csv"), True)
+    # Initialise training/validation and testing data
+    trainX, trainY = Preprocessing.LoadAllSamplesFromCsv(os.path.join(dataDir, "TrainingSet.csv"), True)
+    testX, testY = Preprocessing.LoadAllSamplesFromCsv(os.path.join(dataDir, "TestingSet.csv"), True)
 
 ### Used for testing purposes ####
     #trainX = trainX[0:1000]
@@ -186,9 +207,11 @@ def main():
         for aeType in range(aeTypeStart, aeTypeEnd):
             logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, aeType=aeType,
                                          numOfInputDim=trainX.shape[1])
+            modelPath = os.path.abspath(os.path.join(dataDir, '..', "models/" +
+                                                     os.path.basename(logFilePath)[:-4] + ".h5"))
 
-            aeResult = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
-                                                 trainX=trainX, testX=testX)
+            aeResult = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath, trainX=trainX, testX=testX,
+                                      saveModel=saveModel, modelPath=modelPath)
 
             runKNN(aeResult[0], aeResult[1], trainY, testY, logFilePath)
 
@@ -235,9 +258,10 @@ def main():
         for aeType in range(aeTypeStart, aeTypeEnd):
             logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, aeType=aeType,
                                          numOfAeSplits=numOfAeSplits, numOfInputDim=trainX.shape[1] / numOfAeSplits)
+            modelPath = os.path.abspath(os.path.join(dataDir, '..', "models/" + os.path.basename(logFilePath)[:-4]))
 
-            newTrainX, newTestX = runMultipleEncoder(numOfAeSplits, aeType, logFilePath,
-                                                     splitByIndexTrainX, splitByIndexTestX)
+            newTrainX, newTestX = runMultipleEncoder(numOfAeSplits, aeType, logFilePath, splitByIndexTrainX,
+                                                     splitByIndexTestX, modelPath, saveModel)
 
             runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
@@ -274,8 +298,7 @@ def main():
                                                     logFilePath)  # newTrainX = principal components
         newTestX = MyPCA.ReduceTestingData(testX, myPca, logFilePath)
 
-        aeResult = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath,
-                                             trainX=newTrainX, testX=newTestX)
+        aeResult = runAutoEncoder(autoEncoderType=aeType, logFilePath=logFilePath, trainX=newTrainX, testX=newTestX)
 
         runKNN(aeResult[0], aeResult[1], trainY, testY, logFilePath)
 
@@ -319,6 +342,58 @@ def main():
     elif method == Method.NoDimReduction:
         logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir)
         runKNN(trainX, testX, trainY, testY, logFilePath)
+
+    elif method == Method.LoadEncoder:
+        modelPath = os.path.abspath(os.path.join(dataDir, '..', "models"))
+        modelFiles = [name for name in os.listdir(modelPath) if name[-3:] == ".h5"]
+
+        if len(modelFiles) != 1:
+            raise Exception("There must be only one model file in the models directory.")
+
+        for model in modelFiles:
+            logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, aeLoadArch=model[:-3])
+
+            aeResult = runAutoEncoder(logFilePath=logFilePath, trainX=trainX, testX=testX,
+                                      modelPath=os.path.join(modelPath, model), loadModel=True)
+
+            runKNN(aeResult[0], aeResult[1], trainY, testY, logFilePath)
+
+    elif method == Method.LoadMultipleEncoder:
+        modelPath = os.path.abspath(os.path.join(dataDir, '..', "models"))
+        modelFiles = [name for name in os.listdir(modelPath) if name[-3:] == ".h5"]
+        numOfAeSplits = len(modelFiles) # No. of splits equals number of models
+
+        splitByIndexTrainX = Preprocessing.SplitDataByIndex(dataX=trainX, numOfSplits=numOfAeSplits, slideDivisor=1)
+        splitByIndexTestX = Preprocessing.SplitDataByIndex(dataX=testX, numOfSplits=numOfAeSplits, slideDivisor=1)
+
+        totalTrainEncodingTime = 0
+        totalTestEncodingTime = 0
+        i = 0
+
+        for model in modelFiles:
+            logFilePath = GetLogFilePath(method=method, logFileDir=logFileDir, numOfAeSplits=numOfAeSplits,
+                                         aeLoadArch=model[:-7])
+
+            aeResult = runAutoEncoder(logFilePath=logFilePath, trainX=splitByIndexTrainX[i], testX=splitByIndexTestX[i],
+                                      modelPath=os.path.join(modelPath, model), loadModel=True)
+
+            totalTrainEncodingTime += aeResult[3]
+            totalTestEncodingTime += aeResult[4]
+
+            if i == 0:
+                newTrainX = aeResult[0]
+                newTestX = aeResult[1]
+            else:  # merge split encodings
+                newTrainX = np.concatenate((newTrainX, aeResult[0]), axis=1)
+                newTestX = np.concatenate((newTestX, aeResult[1]), axis=1)
+
+            i += 1
+
+        with open(logFilePath, "a") as resultsWriter:
+            resultsWriter.write(f"Total encoder training encoding time: {totalTrainEncodingTime:0.4f} seconds \r")
+            resultsWriter.write(f"Total encoder testing encoding time: {totalTestEncodingTime:0.4f} seconds \r")
+
+        runKNN(newTrainX, newTestX, trainY, testY, logFilePath)
 
     if sleepIndicator == 1:
         import os

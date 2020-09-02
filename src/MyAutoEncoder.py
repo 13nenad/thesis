@@ -1,4 +1,6 @@
 import time
+
+import numpy as np
 from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.models import Model
 from tensorflow_core.python.keras import losses, Sequential
@@ -10,11 +12,13 @@ class MyAutoEncoder(object):
     # archType - 7 => 300|256|128|128|256|300           : archType - 8 => 300|128|64|32|64|128|300
     # archType - 9 => 300||256|128|64|128|256|300       : archType - 10 => 300|128|64|32|16|32|64|128|300
     # archType - 11 => 300|256|128|64|32|64|128|256|300 : archType - 12 => 300|256|128|64|32|16|32|64|128|256|300
-    def __init__(self, inputDim, archType, logFilePath):
+    def __init__(self, logFilePath, inputDim=0, archType=0):
         self.logFilePath = logFilePath
+        if archType == 0: return # We are loading a saved model
+
         # Create auto encoder+decoder
         self.autoEncoderModel = Sequential()
-        self.autoEncoderModel.add(Dense(inputDim, input_shape=(inputDim,), activation='relu'))  # Input layer
+        self.autoEncoderModel.add(Dense(inputDim, input_shape=(inputDim,), activation='relu')) # Input layer
 
         if archType == 1:
             self.autoEncoderModel.add(Dense(256, activation='relu'))
@@ -75,7 +79,7 @@ class MyAutoEncoder(object):
         else:
             raise ValueError("Incorrect architecture type given.")
 
-        self.autoEncoderModel.add(Dense(inputDim, activation='relu'))  # Output layer
+        self.autoEncoderModel.add(Dense(inputDim, activation='relu')) # Output layer
         self.autoEncoderModel.compile(optimizer='adam', loss=losses.MSE)
         self.autoEncoderModel.summary()
 
@@ -113,12 +117,14 @@ class MyAutoEncoder(object):
 
     def train(self, trainX, batchSize, epochs):
         tic = time.perf_counter()
+        #noise = np.random.normal(0, 1, trainX.shape)
+        #noisy_input = trainX + noise
         self.autoEncoderModel.fit(trainX, trainX, epochs=epochs, batch_size=batchSize,
                                   shuffle=True, validation_split=0.2)
         toc = time.perf_counter()
 
         with open(self.logFilePath, "a") as resultsWriter:
-            resultsWriter.write(f"\rAutoEncoder training time: {toc - tic:0.4f} seconds \r")
+            resultsWriter.write(f"AutoEncoder training time: {toc - tic:0.4f} seconds \r")
 
         return toc - tic
 
@@ -131,6 +137,6 @@ class MyAutoEncoder(object):
                 resultsWriter.write(f"AutoEncoder training encoding time: {toc - tic:0.4f} seconds \r")
         else:
             with open(self.logFilePath, "a") as resultsWriter:
-                resultsWriter.write(f"AutoEncoder testing encoding time: {toc - tic:0.4f} seconds \r")
+                resultsWriter.write(f"AutoEncoder testing encoding time: {toc - tic:0.4f} seconds \r\r")
 
         return encodedDataX, toc - tic

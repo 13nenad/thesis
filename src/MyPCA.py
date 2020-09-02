@@ -29,7 +29,7 @@ class MyPCA(object):
 
     @staticmethod
     def variancePlot(pca):
-        # Plot the explained variances
+        # Plot the variances
         features = range(pca.n_components_)
         plt.bar(features, pca.explained_variance_ratio_, color='black')
         plt.xlabel('PCA features')

@@ -11,10 +11,13 @@ class Method(enum.Enum):
    PcaPlusSom = 8
    MultipleEncodersAndSOMs = 9
    NoDimReduction = 10
+   LoadEncoder = 11
+   LoadMultipleEncoder = 12
 
 def GetMethodIndex():
     print("1. Single Encoder\n2. Single SOM\n3. Encoder + SOM\n4. Multiple Encoders\n5. Multiple SOMs\n6. PCA"\
-          "\n7. PCA + Encoder\n8. PCA + SOM\n9. Multiple Encoders + Multiple SOMs\n10. No Dimensionality Reduction")
+          "\n7. PCA + Encoder\n8. PCA + SOM\n9. Multiple Encoders + Multiple SOMs\n10. No Dimensionality Reduction"\
+          "\n11. Load AutoEncoder\n12. Load Multiple AutoEncoder")
     return input()
 
 def GetProjType():
@@ -40,6 +43,10 @@ def GetSlideDivisor():
 def GetSleepIndicator():
     print("Put your device to sleep after run (1 = sleep, any other value = don't sleep): ")
     return int(input())
+
+def GetSaveModelIndicator():
+    print("Save model? (1 = yes, any other value = no): ")
+    return input()
 
 def GetNumOfAeSplits():
     print("Number of auto-encoder splits: ")
@@ -91,7 +98,7 @@ def getAeArchStr(autoEncoderType, numOfInputDim):
     return archStr.replace("X", str(int(numOfInputDim)))
 
 def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=0, numOfAeSplits=0,
-               numOfPcaComp=0, numOfInputDim=0, slideDiv=0):
+               numOfPcaComp=0, numOfInputDim=0, slideDiv=0, aeLoadArch=""):
 
     if (method == Method.SingleEncoder or method == Method.EncoderPlusSom or method == Method.MultipleEncoders or
         method == Method.PcaPlusEncoder or method == Method.MultipleEncodersAndSOMs) and numOfInputDim == 0:
@@ -124,6 +131,10 @@ def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=0, numOf
         runName += "-Multiple-SOM-" + str(somGridSize)
     elif method == Method.NoDimReduction:
         runName += "NoDimensionalityReduction"
+    elif method == Method.LoadEncoder:
+        runName += aeLoadArch
+    elif method == Method.LoadMultipleEncoder:
+        runName += aeLoadArch
 
     if numOfSomSplits > 1:
         runName += "-Split-" + str(numOfSomSplits)
@@ -136,28 +147,32 @@ def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=0, numOf
     return runName
 
 def GetLogFilePath(logFileDir, method, aeType=0, gridSize=0, numOfSomSplits=0, numOfAeSplits=0,
-                   numOfPcaComp=0, numOfInputDim=0, slideDiv=0, projType=""):
-    runName = getRunName(method, autoEncoderType=aeType, somGridSize=gridSize,
-                         numOfSomSplits=numOfSomSplits, numOfAeSplits=numOfAeSplits,
-                         numOfPcaComp=numOfPcaComp, numOfInputDim=numOfInputDim, slideDiv=slideDiv)
+                   numOfPcaComp=0, numOfInputDim=0, slideDiv=0, projType="", aeLoadArch=""):
+    runName = getRunName(method, autoEncoderType=aeType, somGridSize=gridSize, numOfSomSplits=numOfSomSplits,
+                         numOfAeSplits=numOfAeSplits, numOfPcaComp=numOfPcaComp, numOfInputDim=numOfInputDim,
+                         slideDiv=slideDiv, aeLoadArch=aeLoadArch)
 
     logFilePath = logFileDir + "\\" + runName + ".txt"
 
     printParams(logFilePath=logFilePath, method=method, aeType=aeType, numOfInputDim=numOfInputDim, gridSize=gridSize,
                 numOfAeSplits=numOfAeSplits, numOfSomSplits=numOfSomSplits, slideDiv=slideDiv, projType=projType,
-                numOfPcaComp=numOfPcaComp)
+                numOfPcaComp=numOfPcaComp, aeLoadArch=aeLoadArch)
 
     return logFilePath
 
 
 def printParams(logFilePath, method, projType="", aeType=0, numOfInputDim=0, gridSize=0, numOfPcaComp=0,
-                slideDiv=0, numOfAeSplits=0, numOfSomSplits=0):
+                slideDiv=0, numOfAeSplits=0, numOfSomSplits=0, aeLoadArch=""):
     if projType == "1": projType = "Coordinate-based"
     elif projType == "2": projType = "Label-based"
 
     with open(logFilePath, "a") as resultsWriter:
         resultsWriter.write(f"Method: {method} \r")
         if aeType != 0: resultsWriter.write(f"Auto-encoder architecture: {getAeArchStr(aeType, numOfInputDim)} \r")
+        if aeLoadArch != "":
+            if "Multiple" in aeLoadArch:
+                aeLoadArch = aeLoadArch.replace("Multiple-", "").replace("-Split-", "")[:-1]
+            resultsWriter.write(f"Auto-encoder architecture: {aeLoadArch} \r")
         if numOfAeSplits != 0: resultsWriter.write(f"Number of auto-encoder splits: {numOfAeSplits} \r")
         if projType != "": resultsWriter.write(f"SOM projection: {projType} \r")
         if gridSize != 0: resultsWriter.write(f"Grid size: {gridSize} \r")
@@ -167,3 +182,5 @@ def printParams(logFilePath, method, projType="", aeType=0, numOfInputDim=0, gri
             numOfOutputDim = numOfSomSplits * slideDiv - (slideDiv - 1)
             resultsWriter.write(f"Number of total SOM splits: {numOfOutputDim} \r")
         if numOfPcaComp != 0: resultsWriter.write(f"Number of PCA components: {numOfPcaComp} \r")
+
+        resultsWriter.write("\r")
