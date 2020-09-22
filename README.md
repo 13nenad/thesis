@@ -71,12 +71,16 @@ coordBasedVal - Only used for SOMs. It indicates whether the output of the SOM w
                 
 aeTypeStart, aeTypeEnd - Auto-encoder architecture type, specified in MyAutoEncoder.py
 
+saveModel - The single and multiple autoencoder methods have the option of saving the trained model in the models folder
+            and this model can then be loaded and reused.
+
 The program currently has 9 different methods that it can run:
-1. A single auto-encoder. It loops over various pre-defined architectures. You need to specify:
+1. A single auto-encoder. It iterates over pre-defined architectures. You need to specify:
            aeTypeStart
            aeTypeEnd
+           saveModel
 
-2. A single SOM. It loops over a specified number of different grid sizes, step size = 5. You will need to specify:
+2. A single SOM. It iterates over a specified number of different grid sizes, step size = 5. You will need to specify:
            
        numOfSplits
        slideDivisor
@@ -96,8 +100,9 @@ The program currently has 9 different methods that it can run:
        numOfAeSplits
        aeTypeStart
        aeTypeEnd
+       saveModel
 
-5. Multiple SOMs. It loops over a specified number of different grid sizes, step size = 5. You will need to specify:
+5. Multiple SOMs. It iterates over a specified number of different grid sizes, step size = 5. You will need to specify:
     
        numOfSomSplits
        slideDivisor
@@ -130,5 +135,15 @@ The program currently has 9 different methods that it can run:
        
 10. No Dimensionality Reduction. You do not need to specify any further arguments.
     This will purely only run the kNN classifier.
+    
+11. Load Encoder. You do not need to specify any further arguments.
+    This will load the encoder model present in the models folder.
+    If there are no model files present or if more than one model files in this location, an exception is raised.
+    
+12. Load Multiple Encoders. You do not need to specify any further arguments.
+    This will load all of the models present in the models folder.
+    The user must ensure that all of the models are associated each other.
+    The Multiple Encoders method will launch and it will split the samples into however many model files are present.
+    
 
 

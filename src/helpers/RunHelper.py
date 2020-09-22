@@ -17,7 +17,7 @@ class Method(enum.Enum):
 def GetMethodIndex():
     print("1. Single Encoder\n2. Single SOM\n3. Encoder + SOM\n4. Multiple Encoders\n5. Multiple SOMs\n6. PCA"\
           "\n7. PCA + Encoder\n8. PCA + SOM\n9. Multiple Encoders + Multiple SOMs\n10. No Dimensionality Reduction"\
-          "\n11. Load AutoEncoder\n12. Load Multiple AutoEncoder")
+          "\n11. Load Encoder\n12. Load Multiple Encoders")
     return input()
 
 def GetProjType():
@@ -46,6 +46,10 @@ def GetSleepIndicator():
 
 def GetSaveModelIndicator():
     print("Save model? (1 = yes, any other value = no): ")
+    return input()
+
+def GetNoiseIndicator():
+    print("Denoising Autoencoder? (1 = yes, any other value = no): ")
     return input()
 
 def GetNumOfAeSplits():
@@ -147,7 +151,7 @@ def getRunName(method, autoEncoderType=0, somGridSize=0, numOfSomSplits=0, numOf
     return runName
 
 def GetLogFilePath(logFileDir, method, aeType=0, gridSize=0, numOfSomSplits=0, numOfAeSplits=0,
-                   numOfPcaComp=0, numOfInputDim=0, slideDiv=0, projType="", aeLoadArch=""):
+                   numOfPcaComp=0, numOfInputDim=0, slideDiv=0, projType="", aeLoadArch="", isDenoising=False):
     runName = getRunName(method, autoEncoderType=aeType, somGridSize=gridSize, numOfSomSplits=numOfSomSplits,
                          numOfAeSplits=numOfAeSplits, numOfPcaComp=numOfPcaComp, numOfInputDim=numOfInputDim,
                          slideDiv=slideDiv, aeLoadArch=aeLoadArch)
@@ -156,13 +160,13 @@ def GetLogFilePath(logFileDir, method, aeType=0, gridSize=0, numOfSomSplits=0, n
 
     printParams(logFilePath=logFilePath, method=method, aeType=aeType, numOfInputDim=numOfInputDim, gridSize=gridSize,
                 numOfAeSplits=numOfAeSplits, numOfSomSplits=numOfSomSplits, slideDiv=slideDiv, projType=projType,
-                numOfPcaComp=numOfPcaComp, aeLoadArch=aeLoadArch)
+                numOfPcaComp=numOfPcaComp, aeLoadArch=aeLoadArch, isDenoising=isDenoising)
 
     return logFilePath
 
 
 def printParams(logFilePath, method, projType="", aeType=0, numOfInputDim=0, gridSize=0, numOfPcaComp=0,
-                slideDiv=0, numOfAeSplits=0, numOfSomSplits=0, aeLoadArch=""):
+                slideDiv=0, numOfAeSplits=0, numOfSomSplits=0, aeLoadArch="", isDenoising=False):
     if projType == "1": projType = "Coordinate-based"
     elif projType == "2": projType = "Label-based"
 
@@ -173,6 +177,7 @@ def printParams(logFilePath, method, projType="", aeType=0, numOfInputDim=0, gri
             if "Multiple" in aeLoadArch:
                 aeLoadArch = aeLoadArch.replace("Multiple-", "").replace("-Split-", "")[:-1]
             resultsWriter.write(f"Auto-encoder architecture: {aeLoadArch} \r")
+        if isDenoising: resultsWriter.write(f"Denoising: yes \r")
         if numOfAeSplits != 0: resultsWriter.write(f"Number of auto-encoder splits: {numOfAeSplits} \r")
         if projType != "": resultsWriter.write(f"SOM projection: {projType} \r")
         if gridSize != 0: resultsWriter.write(f"Grid size: {gridSize} \r")

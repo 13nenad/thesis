@@ -115,11 +115,13 @@ class MyAutoEncoder(object):
 
         self.encoderModel.summary()
 
-    def train(self, trainX, batchSize, epochs):
+    def train(self, trainX, batchSize, epochs, isDenoising=False):
         tic = time.perf_counter()
-        #noise = np.random.normal(0, 1, trainX.shape)
-        #noisy_input = trainX + noise
-        self.autoEncoderModel.fit(trainX, trainX, epochs=epochs, batch_size=batchSize,
+        inputLayer = trainX
+        if isDenoising: # add some noise to the input layer
+            inputLayer = trainX + np.random.normal(0, 1, trainX.shape) / 2
+
+        self.autoEncoderModel.fit(inputLayer, trainX, epochs=epochs, batch_size=batchSize,
                                   shuffle=True, validation_split=0.2)
         toc = time.perf_counter()
 

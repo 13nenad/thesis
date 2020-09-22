@@ -1,7 +1,6 @@
 from biosppy.signals import ecg
 import numpy as np
 from scipy.io import loadmat
-from matplotlib import pyplot as plt
 import os
 from numpy import genfromtxt
 import more_itertools
@@ -42,7 +41,6 @@ class Preprocessing:
     def SaveAllSamplesToCsv(samples, filePath):
         # Concatenate all the sample strings together before writing to a file
         sampleStr = ""
-        counter = 0
         for i in range(len(samples)):
             line = np.array2string(samples[i], separator=',', max_line_width=999999)
             sampleStr += line[2:len(line)-1] + "\r"  # Remove brackets from list
@@ -149,19 +147,6 @@ class Preprocessing:
             signalData = filteredData
 
         return signalData
-
-    @staticmethod
-    def PlotHeartbeats(allSamples, start, end, frequency):
-        heartBeats = allSamples[start:end]
-        heartBeatLength = heartBeats[0].size
-        heartbeatDuration = heartBeatLength / frequency
-        ts = np.linspace(0, heartbeatDuration, heartBeatLength)
-
-        for i in range(end-start):
-            plt.plot(ts, heartBeats[i])
-
-        plt.grid()
-        plt.show()
 
     # Split samples into a 80% training/validation set and a 20% testing set
     @staticmethod
