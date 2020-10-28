@@ -198,3 +198,16 @@ class Preprocessing:
             windowedData += dataSplit
 
         return np.array(windowedData)
+
+    @staticmethod
+    def CountNumSamplesPerClass(dataY):
+        labelDict = {}
+        for label in dataY:
+            if label in labelDict:
+                labelDict[label] += 1
+            else:
+                labelDict.update({label : 1})
+
+        for key, val in labelDict.items():
+            print(key, val)
+        print()

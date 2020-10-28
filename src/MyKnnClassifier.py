@@ -4,6 +4,8 @@ from sklearn.metrics import multilabel_confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
 
+from helpers.Plotting import Plotting
+
 class MyKnnClassifier(object):
 
     # maxK - maximum number of k for kNN
@@ -30,6 +32,9 @@ class MyKnnClassifier(object):
         with open(self.logFilePath, "a") as resultsWriter:
             tic = time.perf_counter()
             predY = self.knnGscv.predict(testX)
+
+            # Uncomment if you want to plot confusion matrix
+            #Plotting.PlotConfusionMatrix(testY, predY, 0)
 
             mcm = multilabel_confusion_matrix(testY, predY)
             tn = mcm[:, 0, 0]

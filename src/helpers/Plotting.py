@@ -1,5 +1,8 @@
 from matplotlib import pyplot as plt
 import numpy as np
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
+import pandas as pd
 
 # This class has been implemented for the sole purpose of visual aids in study documentation
 from Preprocessing import Preprocessing
@@ -59,6 +62,18 @@ class Plotting:
 
         plt.show()
 
-samples = Preprocessing.LoadAllSamplesFromCsv("C:\\Users\\nenad\\PycharmProjects\\thesis\\data\\finalencoding-sample.csv", False)
-#Plotting.PlotFourSubsections(samples, 500)
-Plotting.PlotHeartbeats(samples, 0, 1, 500)
+    # datasetIndex - 0 => ICBEB
+    # datasetIndex - 1 => PhysioNet
+    @staticmethod
+    def PlotConfusionMatrix(testY, predY, datasetIndex):
+        array = confusion_matrix(testY, predY)
+
+        if datasetIndex == 0:
+            cmDf = pd.DataFrame(array, index=[i for i in "NFBLRAVDE"],
+                                columns=[i for i in "NFBLRAVDE"])
+        elif datasetIndex == 1:
+            cmDf = pd.DataFrame(array, index=[i for i in "NAO"],
+                                columns=[i for i in "NAO"])
+
+        sn.heatmap(cmDf, annot=True, fmt="d")
+        plt.show()
